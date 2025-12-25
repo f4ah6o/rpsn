@@ -108,6 +108,10 @@ pub enum Commands {
     #[command(subcommand)]
     Idlink(IdlinkCommands),
 
+    /// Error reporting - Generate safe error reports for GitHub issues
+    #[command(subcommand)]
+    Report(ReportCommands),
+
     /// Generate shell completion script for bash, zsh, fish, etc.
     Completion {
         /// Shell type (bash, zsh, fish, elvish, powershell)
@@ -689,6 +693,26 @@ pub enum IdlinkCommands {
         /// ID Link ID to delete
         idlink_id: u64,
     },
+}
+
+#[derive(Subcommand)]
+pub enum ReportCommands {
+    /// Generate an error report from the last error (reads from stdin or file)
+    Generate {
+        /// Error message to report (or reads from stdin if not provided)
+        #[arg(long)]
+        error: Option<String>,
+        /// Command that caused the error
+        #[arg(long)]
+        command: Option<String>,
+        /// Output file path (prints to stdout if not provided)
+        #[arg(long)]
+        output: Option<String>,
+    },
+    /// Test error report generation with a sample error
+    Test,
+    /// Show information about what data is collected and excluded
+    Info,
 }
 
 #[derive(ValueEnum, Clone, Copy)]

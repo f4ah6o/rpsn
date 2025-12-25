@@ -11,3 +11,4 @@ pub mod space;
 pub mod user;
 pub mod webhook;
 pub mod idlink;
+pub mod report;
