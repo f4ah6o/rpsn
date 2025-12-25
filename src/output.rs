@@ -220,16 +220,8 @@ fn print_space(obj: &serde_json::Map<String, serde_json::Value>) {
     }
 }
 
-pub fn print_error(error: &anyhow::Error) {
-    eprintln!("{} {}", "Error:".red().bold(), error);
-}
-
 pub fn print_success(message: &str) {
     println!("{}", message.green().bold());
-}
-
-pub fn print_progress(message: &str) {
-    eprintln!("{}", message.dimmed());
 }
 
 #[cfg(test)]

@@ -364,11 +364,6 @@ pub struct FilesData {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct FileData {
-    pub file: File,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Invite {
     pub id: u64,
     pub email: String,
