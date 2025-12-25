@@ -2,9 +2,25 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(name = "rpsn")]
-#[command(about = "Repsona Task Management CLI")]
+#[command(about = "Repsona Task Management CLI - Manage tasks, projects, and notes from the command line")]
 #[command(version = "0.1.0")]
-#[command(long_about = "rpsn provides a command-line interface for Repsona task management")]
+#[command(long_about = r#"rpsn - Repsona Task Management CLI
+
+A command-line interface for Repsona (https://repsona.com) that provides 1:1 mapping
+to the Repsona REST API with human-friendly operations.
+
+GETTING STARTED:
+  1. Initialize configuration:  rpsn config init
+  2. Set credentials:           rpsn config set --space <ID> --token <TOKEN>
+  3. Verify connection:         rpsn config whoami
+
+COMMON WORKFLOWS:
+  List your tasks:              rpsn me tasks
+  Create a task:                rpsn task create <PROJECT_ID> --title "Task title"
+  Mark task as done:            rpsn task done <PROJECT_ID> <TASK_ID>
+  List projects:                rpsn project list
+
+For more information, see: https://github.com/your-org/rpsn"#)]
 pub struct Cli {
     /// Repsona Space ID (overrides config)
     #[arg(long, env = "REPSONA_SPACE")]
@@ -40,68 +56,68 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Utility commands
+    /// Utility commands (version, help, ping)
     #[command(subcommand)]
     Util(UtilCommands),
 
-    /// Configuration management
+    /// Configuration management - Initialize, set credentials, manage profiles
     #[command(subcommand)]
     Config(ConfigCommands),
 
-    /// Personal operations (me)
+    /// Personal operations - Your tasks, projects, and activity
     #[command(subcommand)]
     Me(MeCommands),
 
-    /// Project management
+    /// Project management - List, create, update projects and manage members
     #[command(subcommand)]
     Project(ProjectCommands),
 
-    /// Task operations
+    /// Task operations - Create, update, complete tasks and manage comments
     #[command(subcommand)]
     Task(TaskCommands),
 
-    /// Note operations
+    /// Note operations - Create, update, delete notes and manage comments
     #[command(subcommand)]
     Note(NoteCommands),
 
-    /// File operations
+    /// File operations - Upload, download, attach/detach files
     #[command(subcommand)]
     File(FileCommands),
 
-    /// Tag operations
+    /// Tag operations - List available tags
     #[command(subcommand)]
     Tag(TagCommands),
 
-    /// Inbox operations
+    /// Inbox operations - View notifications and mark as read
     #[command(subcommand)]
     Inbox(InboxCommands),
 
-    /// Space operations
+    /// Space operations - View space info and invite users
     #[command(subcommand)]
     Space(SpaceCommands),
 
-    /// User operations
+    /// User operations - List users, manage roles and permissions
     #[command(subcommand)]
     User(UserCommands),
 
-    /// Webhook operations
+    /// Webhook operations - Create, update, delete webhooks for integrations
     #[command(subcommand)]
     Webhook(WebhookCommands),
 
-    /// ID Link operations
+    /// ID Link operations - Manage external ID link integrations
     #[command(subcommand)]
     Idlink(IdlinkCommands),
 
-    /// Generate shell completion script
+    /// Generate shell completion script for bash, zsh, fish, etc.
     Completion {
-        /// Shell type
+        /// Shell type (bash, zsh, fish, elvish, powershell)
         #[arg(value_enum)]
         shell: Shell,
     },
 
-    /// Generate agent skill file
+    /// Generate agent skill file for AI assistants
     SkillGenerate {
-        /// Output file path
+        /// Output file path (default: ~/.config/rpsn/.claude/skills/rpsn/SKILL.md)
         #[arg(long)]
         output: Option<String>,
     },
@@ -109,145 +125,145 @@ pub enum Commands {
 
 #[derive(Subcommand)]
 pub enum UtilCommands {
-    /// Show version information
+    /// Show version information (rpsn version number)
     Version,
-    /// Show help
+    /// Show detailed help information
     Help,
-    /// Ping the API
+    /// Ping the API to verify connection and credentials
     Ping,
 }
 
 #[derive(Subcommand)]
 pub enum ConfigCommands {
-    /// Initialize configuration
+    /// Initialize configuration file (~/.config/rpsn/config.toml)
     Init,
-    /// Show current configuration
+    /// Show current configuration (space ID and profile)
     Get,
-    /// Set credentials
+    /// Set credentials for the default profile
     Set {
-        /// Space ID
+        /// Repsona Space ID (found in your Repsona settings)
         #[arg(long)]
         space: String,
-        /// API Token
+        /// API Token (generate from Repsona settings)
         #[arg(long)]
         token: String,
     },
-    /// Set profile credentials
+    /// Create or update a named profile with credentials
     SetProfile {
-        /// Profile name
+        /// Profile name (e.g., "work", "personal")
         name: String,
-        /// Space ID
+        /// Repsona Space ID for this profile
         #[arg(long)]
         space: String,
-        /// API Token
+        /// API Token for this profile
         #[arg(long)]
         token: String,
     },
-    /// Switch profile
+    /// Switch to a different profile
     Use {
-        /// Profile name
+        /// Profile name to switch to
         name: String,
     },
-    /// Show current user information
+    /// Show current user information (verify credentials)
     Whoami,
 }
 
 #[derive(Subcommand)]
 pub enum MeCommands {
-    /// Get your user information
+    /// Get your user information (name, email, role, etc.)
     Get,
-    /// Update your profile
+    /// Update your profile information
     Update {
-        /// Display name
+        /// Display name shown in the interface
         #[arg(long)]
         name: Option<String>,
-        /// Full name
+        /// Your full name
         #[arg(long)]
         full_name: Option<String>,
-        /// Status message
+        /// Status message ("What are you doing?")
         #[arg(long)]
         what_are_you_doing: Option<String>,
     },
-    /// List your tasks
+    /// List all tasks assigned to you
     Tasks,
-    /// List tasks you're responsible for
+    /// List tasks where you are the responsible person
     TasksResponsible,
-    /// List tasks you're holding the ball for
+    /// List tasks where you are holding the ball (awaiting your action)
     TasksBallHolding,
-    /// List tasks you're following
+    /// List tasks you are following for updates
     TasksFollowing,
-    /// Get your task count
+    /// Get a count of your tasks by status
     TasksCount,
-    /// List your projects
+    /// List all projects you are a member of
     Projects,
-    /// Get your activity log
+    /// Get your recent activity log
     Activity,
 }
 
 #[derive(Subcommand)]
 pub enum ProjectCommands {
-    /// List all projects
+    /// List all projects in the space
     List,
-    /// Get project details
+    /// Get detailed information about a project
     Get {
-        /// Project ID
+        /// Project ID (numeric)
         project_id: u64,
     },
-    /// Create a new project
+    /// Create a new project in the space
     Create {
-        /// Project name
+        /// Project name (short identifier)
         #[arg(long)]
         name: String,
-        /// Full name
+        /// Full project name (display name)
         #[arg(long)]
         full_name: Option<String>,
-        /// Project purpose
+        /// Project purpose or description
         #[arg(long)]
         purpose: Option<String>,
     },
-    /// Update project
+    /// Update an existing project's information
     Update {
-        /// Project ID
+        /// Project ID to update
         project_id: u64,
-        /// Project name
+        /// New project name
         #[arg(long)]
         name: Option<String>,
-        /// Project purpose
+        /// New project purpose
         #[arg(long)]
         purpose: Option<String>,
     },
-    /// List project members
+    /// List all members of a project
     MembersList {
         /// Project ID
         project_id: u64,
     },
-    /// Add member to project
+    /// Add a user as a member of the project
     MembersAdd {
         /// Project ID
         project_id: u64,
-        /// User ID
+        /// User ID to add (use 'user list' to find IDs)
         #[arg(long)]
         user: u64,
     },
-    /// Remove member from project
+    /// Remove a user from the project
     MembersRemove {
         /// Project ID
         project_id: u64,
-        /// User ID
+        /// User ID to remove
         #[arg(long)]
         user: u64,
     },
-    /// Get project activity
+    /// Get recent activity log for a project
     Activity {
         /// Project ID
         project_id: u64,
     },
-    /// List project statuses
+    /// List available task statuses in a project
     StatusList {
         /// Project ID
         project_id: u64,
     },
-    /// List project milestones
+    /// List milestones defined in a project
     MilestoneList {
         /// Project ID
         project_id: u64,
@@ -256,121 +272,121 @@ pub enum ProjectCommands {
 
 #[derive(Subcommand)]
 pub enum TaskCommands {
-    /// List tasks in project
+    /// List all tasks in a project
     List {
-        /// Project ID
+        /// Project ID containing the tasks
         project_id: u64,
     },
-    /// Get task details
+    /// Get detailed information about a specific task
     Get {
         /// Project ID
         project_id: u64,
-        /// Task ID
+        /// Task ID to retrieve
         task_id: u64,
     },
-    /// Create a task
+    /// Create a new task in a project
     Create {
-        /// Project ID
+        /// Project ID to create the task in
         project_id: u64,
-        /// Task title
+        /// Task title (required)
         #[arg(long)]
         title: String,
-        /// Description
+        /// Task description (supports markdown)
         #[arg(long)]
         description: Option<String>,
-        /// Status ID
+        /// Status ID (use 'project status-list' to see available statuses)
         #[arg(long)]
         status: Option<u64>,
-        /// Priority
+        /// Priority level (1-5, where 5 is highest)
         #[arg(long)]
         priority: Option<u32>,
-        /// Due date (timestamp)
+        /// Due date as Unix timestamp
         #[arg(long)]
         due: Option<u64>,
-        /// Assignee (user ID)
+        /// Assignee user ID (use 'user list' to find IDs)
         #[arg(long)]
         assignee: Option<u64>,
-        /// Comma-separated tag IDs
+        /// Comma-separated tag IDs (e.g., "1,2,3")
         #[arg(long)]
         tags: Option<String>,
     },
-    /// Update task
+    /// Update an existing task's properties
     Update {
-        /// Project ID
+        /// Project ID containing the task
         project_id: u64,
-        /// Task ID
+        /// Task ID to update
         task_id: u64,
-        /// Task title
+        /// New task title
         #[arg(long)]
         title: Option<String>,
-        /// Description
+        /// New description
         #[arg(long)]
         description: Option<String>,
-        /// Status ID
+        /// New status ID
         #[arg(long)]
         status: Option<u64>,
-        /// Priority
+        /// New priority level (1-5)
         #[arg(long)]
         priority: Option<u32>,
-        /// Due date (timestamp)
+        /// New due date as Unix timestamp
         #[arg(long)]
         due: Option<u64>,
-        /// Assignee (user ID)
+        /// New assignee user ID
         #[arg(long)]
         assignee: Option<u64>,
-        /// Comma-separated tag IDs
+        /// New comma-separated tag IDs
         #[arg(long)]
         tags: Option<String>,
     },
-    /// Mark task as done
+    /// Mark a task as completed/done
     Done {
         /// Project ID
         project_id: u64,
-        /// Task ID
+        /// Task ID to mark as done
         task_id: u64,
     },
-    /// Reopen task
+    /// Reopen a completed task
     Reopen {
         /// Project ID
         project_id: u64,
-        /// Task ID
+        /// Task ID to reopen
         task_id: u64,
     },
-    /// List subtasks
+    /// List subtasks (child tasks) of a task
     Children {
         /// Project ID
         project_id: u64,
-        /// Task ID
+        /// Parent task ID
         task_id: u64,
     },
-    /// List task comments
+    /// List all comments on a task
     CommentList {
         /// Project ID
         project_id: u64,
         /// Task ID
         task_id: u64,
     },
-    /// Add comment to task
+    /// Add a comment to a task
     CommentAdd {
         /// Project ID
         project_id: u64,
-        /// Task ID
+        /// Task ID to comment on
         task_id: u64,
-        /// Comment text
+        /// Comment text (supports markdown)
         #[arg(long)]
         comment: String,
-        /// Reply to comment ID
+        /// Reply to an existing comment (comment ID)
         #[arg(long)]
         reply_to: Option<u64>,
     },
-    /// Get task activity
+    /// Get activity log for a task
     Activity {
         /// Project ID
         project_id: u64,
         /// Task ID
         task_id: u64,
     },
-    /// Get task history
+    /// Get change history for a task
     History {
         /// Project ID
         project_id: u64,
@@ -381,114 +397,114 @@ pub enum TaskCommands {
 
 #[derive(Subcommand)]
 pub enum NoteCommands {
-    /// List notes in project
+    /// List all notes in a project
     List {
-        /// Project ID
+        /// Project ID containing the notes
         project_id: u64,
     },
-    /// Get note details
+    /// Get detailed information about a note
     Get {
         /// Project ID
         project_id: u64,
-        /// Note ID
+        /// Note ID to retrieve
         note_id: u64,
     },
-    /// Create a note
+    /// Create a new note in a project
     Create {
-        /// Project ID
+        /// Project ID to create the note in
         project_id: u64,
-        /// Note name
+        /// Note name/title
         #[arg(long)]
         name: String,
-        /// Description
+        /// Note description/content (supports markdown)
         #[arg(long)]
         description: Option<String>,
-        /// Parent note ID
+        /// Parent note ID (to create a subnote)
         #[arg(long)]
         parent: Option<u64>,
-        /// Comma-separated tag IDs
+        /// Comma-separated tag IDs (e.g., "1,2,3")
         #[arg(long)]
         tags: Option<String>,
-        /// Add to bottom
+        /// Add note at the bottom of the list (default: top)
         #[arg(long)]
         add_to_bottom: bool,
     },
-    /// Update note
+    /// Update an existing note
     Update {
         /// Project ID
         project_id: u64,
-        /// Note ID
+        /// Note ID to update
         note_id: u64,
-        /// Note name
+        /// New note name
         #[arg(long)]
         name: Option<String>,
-        /// Description
+        /// New description
         #[arg(long)]
         description: Option<String>,
-        /// Comma-separated tag IDs
+        /// New comma-separated tag IDs
         #[arg(long)]
         tags: Option<String>,
     },
-    /// Delete note
+    /// Delete a note (requires confirmation unless --yes is used)
     Delete {
         /// Project ID
         project_id: u64,
-        /// Note ID
+        /// Note ID to delete
         note_id: u64,
     },
-    /// List subnotes
+    /// List subnotes (child notes) of a note
     Children {
         /// Project ID
         project_id: u64,
-        /// Note ID
+        /// Parent note ID
         note_id: u64,
     },
-    /// List note comments
+    /// List all comments on a note
     CommentList {
         /// Project ID
         project_id: u64,
         /// Note ID
         note_id: u64,
     },
-    /// Add comment to note
+    /// Add a comment to a note
     CommentAdd {
         /// Project ID
         project_id: u64,
-        /// Note ID
+        /// Note ID to comment on
         note_id: u64,
-        /// Comment text
+        /// Comment text (supports markdown)
         #[arg(long)]
         comment: String,
     },
-    /// Update note comment
+    /// Update an existing comment on a note
     CommentUpdate {
         /// Project ID
         project_id: u64,
         /// Note ID
         note_id: u64,
-        /// Comment ID
+        /// Comment ID to update
         comment_id: u64,
-        /// Comment text
+        /// New comment text
         #[arg(long)]
         comment: String,
     },
-    /// Delete note comment
+    /// Delete a comment from a note
     CommentDelete {
         /// Project ID
         project_id: u64,
         /// Note ID
         note_id: u64,
-        /// Comment ID
+        /// Comment ID to delete
         comment_id: u64,
     },
-    /// Get note activity
+    /// Get activity log for a note
     Activity {
         /// Project ID
         project_id: u64,
         /// Note ID
         note_id: u64,
     },
-    /// Get note history
+    /// Get change history for a note
     History {
         /// Project ID
         project_id: u64,
@@ -499,88 +515,88 @@ pub enum NoteCommands {
 
 #[derive(Subcommand)]
 pub enum FileCommands {
-    /// Upload file to project
+    /// Upload a file to a project
     Upload {
-        /// Project ID
+        /// Project ID to upload to
         project_id: u64,
-        /// File path
+        /// Local file path to upload
         path: String,
     },
-    /// Download file
+    /// Download a file by its hash
     Download {
-        /// File hash
+        /// File hash (obtained from upload or file list)
         #[arg(long)]
         hash: String,
-        /// Output path
+        /// Output path (default: current directory with original filename)
         #[arg(long)]
         out: Option<String>,
     },
-    /// Attach file
+    /// Attach an uploaded file to a task, note, or comment
     Attach {
         /// Project ID
         project_id: u64,
-        /// Model type (task, task_comment, note, note_comment)
+        /// Model type: task, task_comment, note, or note_comment
         #[arg(long)]
         model: String,
-        /// Model ID
+        /// Model ID (task ID, note ID, or comment ID)
         #[arg(long)]
         id: u64,
-        /// File ID
+        /// File ID to attach
         #[arg(long)]
         file: u64,
     },
-    /// Detach file
+    /// Detach a file from a task, note, or comment
     Detach {
         /// Project ID
         project_id: u64,
-        /// Model type (task, task_comment, note, note_comment)
+        /// Model type: task, task_comment, note, or note_comment
         #[arg(long)]
         model: String,
-        /// Model ID
+        /// Model ID (task ID, note ID, or comment ID)
         #[arg(long)]
         id: u64,
-        /// File ID
+        /// File ID to detach
         #[arg(long)]
         file: u64,
     },
-    /// Delete file
+    /// Delete a file permanently
     Delete {
-        /// File ID
+        /// File ID to delete
         file_id: u64,
     },
 }
 
 #[derive(Subcommand)]
 pub enum TagCommands {
-    /// List all tags
+    /// List all tags available in the space
     List,
 }
 
 #[derive(Subcommand)]
 pub enum InboxCommands {
-    /// List inbox items
+    /// List all inbox notifications
     List,
-    /// Update inbox item
+    /// Mark an inbox item as read
     Update {
-        /// Inbox ID
+        /// Inbox item ID to mark as read
         inbox_id: u64,
     },
-    /// Mark all inbox as read
+    /// Mark all inbox items as read
     ReadAll,
-    /// Get unread count
+    /// Get count of unread inbox items
     UnreadCount,
 }
 
 #[derive(Subcommand)]
 pub enum SpaceCommands {
-    /// Get space information
+    /// Get information about the current space
     Get,
-    /// Invite user to space
+    /// Invite a user to the space by email
     Invite {
-        /// Email address
+        /// Email address to invite
         #[arg(long)]
         email: String,
-        /// Role
+        /// Role to assign (e.g., "member", "admin")
         #[arg(long)]
         role: Option<String>,
     },
@@ -588,30 +604,30 @@ pub enum SpaceCommands {
 
 #[derive(Subcommand)]
 pub enum UserCommands {
-    /// List all users
+    /// List all users in the space
     List,
-    /// Get user details
+    /// Get detailed information about a user
     Get {
-        /// User ID
+        /// User ID to retrieve
         user_id: u64,
     },
-    /// Set user role
+    /// Set a user's role in the space
     RoleSet {
-        /// User ID
+        /// User ID to modify
         user_id: u64,
-        /// Role
+        /// New role (e.g., "member", "admin", "owner")
         #[arg(long)]
         role: String,
     },
-    /// Set user payment type
+    /// Set a user's payment/billing type
     PaymentSet {
-        /// User ID
+        /// User ID to modify
         user_id: u64,
-        /// Payment type
+        /// Payment type (e.g., "paid", "free")
         #[arg(long)]
         r#type: String,
     },
-    /// Get user activity
+    /// Get activity log for a specific user
     Activity {
         /// User ID
         user_id: u64,
@@ -620,57 +636,57 @@ pub enum UserCommands {
 
 #[derive(Subcommand)]
 pub enum WebhookCommands {
-    /// List webhooks
+    /// List all configured webhooks
     List,
-    /// Create webhook
+    /// Create a new webhook for event notifications
     Create {
-        /// Webhook name
+        /// Webhook name for identification
         #[arg(long)]
         name: String,
-        /// Webhook URL
+        /// URL to receive webhook POST requests
         #[arg(long)]
         url: String,
-        /// Comma-separated events
+        /// Comma-separated event types (e.g., "task.created,task.updated")
         #[arg(long)]
         events: String,
     },
-    /// Update webhook
+    /// Update an existing webhook
     Update {
-        /// Webhook ID
+        /// Webhook ID to update
         webhook_id: u64,
-        /// Webhook name
+        /// New webhook name
         #[arg(long)]
         name: Option<String>,
-        /// Webhook URL
+        /// New webhook URL
         #[arg(long)]
         url: Option<String>,
-        /// Comma-separated events
+        /// New comma-separated event types
         #[arg(long)]
         events: Option<String>,
     },
-    /// Delete webhook
+    /// Delete a webhook
     Delete {
-        /// Webhook ID
+        /// Webhook ID to delete
         webhook_id: u64,
     },
 }
 
 #[derive(Subcommand)]
 pub enum IdlinkCommands {
-    /// List ID links
+    /// List all ID link configurations
     List,
-    /// Create ID link
+    /// Create a new ID link for external integrations
     Create {
-        /// Link name
+        /// Link name/label
         #[arg(long)]
         name: String,
-        /// Link URL
+        /// URL pattern with {id} placeholder
         #[arg(long)]
         url: String,
     },
-    /// Delete ID link
+    /// Delete an ID link configuration
     Delete {
-        /// ID Link ID
+        /// ID Link ID to delete
         idlink_id: u64,
     },
 }
