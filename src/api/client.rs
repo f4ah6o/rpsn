@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use reqwest::{header, multipart, Client, Method, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::collections::HashMap;
 
 pub struct RepsonaClient {
     base_url: String,
@@ -104,7 +103,7 @@ impl RepsonaClient {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::GET, endpoint, None).await
+        self.execute_request::<T>(Method::GET, endpoint, None::<&()>).await
     }
 
     pub async fn post<T: DeserializeOwned>(&self, endpoint: &str, body: &impl Serialize) -> Result<T> {
@@ -116,7 +115,7 @@ impl RepsonaClient {
     }
 
     pub async fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::DELETE, endpoint, None).await
+        self.execute_request::<T>(Method::DELETE, endpoint, None::<&()>).await
     }
 
     pub async fn post_multipart<T: DeserializeOwned>(

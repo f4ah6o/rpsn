@@ -8,19 +8,12 @@ pub struct InviteRequest {
     pub role: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Invite {
-    pub id: u64,
-    pub email: String,
-    pub role: String,
-}
-
 impl crate::api::RepsonaClient {
-    pub async fn get_space(&self) -> Result<ApiResponse<Space>> {
+    pub async fn get_space(&self) -> Result<ApiResponse<SpaceData>> {
         self.get("space").await
     }
 
-    pub async fn invite_to_space(&self, request: &InviteRequest) -> Result<ApiResponse<Invite>> {
+    pub async fn invite_to_space(&self, request: &InviteRequest) -> Result<ApiResponse<InviteData>> {
         self.post("space/invite", request).await
     }
 }

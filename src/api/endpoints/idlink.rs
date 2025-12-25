@@ -9,11 +9,11 @@ pub struct CreateIdLinkRequest {
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn list_idlinks(&self) -> Result<ApiResponse<Vec<IdLink>>> {
+    pub async fn list_idlinks(&self) -> Result<ApiResponse<IdLinksData>> {
         self.get("idlink").await
     }
 
-    pub async fn create_idlink(&self, request: &CreateIdLinkRequest) -> Result<ApiResponse<IdLink>> {
+    pub async fn create_idlink(&self, request: &CreateIdLinkRequest) -> Result<ApiResponse<IdLinkData>> {
         self.post("idlink", request).await
     }
 

@@ -114,7 +114,7 @@ fn print_projects(obj: &serde_json::Map<String, serde_json::Value>) {
                 Cell::new("Open".to_string()).add_attribute(Attribute::Bold).fg(Color::Green)
             };
 
-            table.add_row(vec![id, name, status]);
+            table.add_row(vec![Cell::new(id), Cell::new(name), status]);
         }
 
         println!("{}", table);
@@ -229,5 +229,5 @@ pub fn print_success(message: &str) {
 }
 
 pub fn print_progress(message: &str) {
-    eprintln!("{}", message.dim());
+    eprintln!("{}", message.dimmed());
 }

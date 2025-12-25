@@ -20,15 +20,15 @@ pub struct UpdateWebhookRequest {
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn list_webhooks(&self) -> Result<ApiResponse<Vec<Webhook>>> {
+    pub async fn list_webhooks(&self) -> Result<ApiResponse<WebhooksData>> {
         self.get("webhook").await
     }
 
-    pub async fn create_webhook(&self, request: &CreateWebhookRequest) -> Result<ApiResponse<Webhook>> {
+    pub async fn create_webhook(&self, request: &CreateWebhookRequest) -> Result<ApiResponse<WebhookData>> {
         self.post("webhook", request).await
     }
 
-    pub async fn update_webhook(&self, webhook_id: u64, request: &UpdateWebhookRequest) -> Result<ApiResponse<Webhook>> {
+    pub async fn update_webhook(&self, webhook_id: u64, request: &UpdateWebhookRequest) -> Result<ApiResponse<WebhookData>> {
         self.patch(&format!("webhook/{}", webhook_id), request).await
     }
 

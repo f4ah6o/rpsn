@@ -11,7 +11,7 @@ pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -
         FileCommands::Upload { project_id, path } => {
             let file_path = Path::new(&path);
             let response = client.upload_file(project_id, file_path).await?;
-            print(&response.files, format)?;
+            print(&response.data.files, format)?;
             print_success(&format!("File '{}' uploaded", path));
         }
         FileCommands::Download { hash, out } => {
