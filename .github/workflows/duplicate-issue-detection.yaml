@@ -1,0 +1,179 @@
+name: Duplicate Issue Detection
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  detect-duplicates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for duplicate issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueTitle = issue.title.toLowerCase();
+            const issueBody = (issue.body || '').toLowerCase();
+
+            // Extract error patterns from the issue
+            const errorPatterns = extractErrorPatterns(issueBody);
+
+            // Get all open issues (excluding the current one)
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            const currentIssueNumber = issue.number;
+            const potentialDuplicates = [];
+
+            for (const existingIssue of issues) {
+              // Skip the current issue
+              if (existingIssue.number === currentIssueNumber) continue;
+              // Skip pull requests
+              if (existingIssue.pull_request) continue;
+
+              const existingTitle = existingIssue.title.toLowerCase();
+              const existingBody = (existingIssue.body || '').toLowerCase();
+
+              // Calculate similarity scores
+              const titleSimilarity = calculateSimilarity(issueTitle, existingTitle);
+              const bodySimilarity = calculateSimilarity(issueBody, existingBody);
+              const errorMatch = checkErrorPatternMatch(errorPatterns, existingBody);
+
+              // Determine if it's a potential duplicate
+              const score = calculateDuplicateScore(titleSimilarity, bodySimilarity, errorMatch);
+
+              if (score >= 0.5) {
+                potentialDuplicates.push({
+                  issue: existingIssue,
+                  score: score,
+                  titleSimilarity: titleSimilarity,
+                  bodySimilarity: bodySimilarity,
+                  errorMatch: errorMatch
+                });
+              }
+            }
+
+            // Sort by score descending
+            potentialDuplicates.sort((a, b) => b.score - a.score);
+
+            // Take top 5 matches
+            const topMatches = potentialDuplicates.slice(0, 5);
+
+            if (topMatches.length > 0) {
+              let comment = '## 🔍 Potential Duplicate Issues Detected\n\n';
+              comment += 'The following issues may be related to this one:\n\n';
+
+              for (const match of topMatches) {
+                const statusEmoji = match.issue.state === 'open' ? '🟢' : '🔴';
+                const matchPercent = Math.round(match.score * 100);
+                comment += `| ${statusEmoji} | #${match.issue.number} | ${match.issue.title} | ${matchPercent}% match |\n`;
+              }
+
+              comment += '\n---\n';
+              comment += '<details>\n<summary>Match Details</summary>\n\n';
+
+              for (const match of topMatches) {
+                comment += `### #${match.issue.number}\n`;
+                comment += `- Title similarity: ${Math.round(match.titleSimilarity * 100)}%\n`;
+                comment += `- Body similarity: ${Math.round(match.bodySimilarity * 100)}%\n`;
+                comment += `- Error pattern match: ${match.errorMatch ? '✅ Yes' : '❌ No'}\n\n`;
+              }
+
+              comment += '</details>\n\n';
+              comment += '> If this is a duplicate, please close this issue and add your information to the existing issue.\n';
+              comment += '> If this is not a duplicate, you can ignore this message.';
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentIssueNumber,
+                body: comment
+              });
+
+              // Add label for potential duplicate
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentIssueNumber,
+                labels: ['potential-duplicate']
+              });
+            }
+
+            // Helper functions
+            function extractErrorPatterns(text) {
+              const patterns = [];
+
+              // Extract error messages (e.g., "Error: something went wrong")
+              const errorRegex = /(?:error|exception|panic|failed)[\s:]+([^\n]+)/gi;
+              let match;
+              while ((match = errorRegex.exec(text)) !== null) {
+                patterns.push(match[1].trim().toLowerCase());
+              }
+
+              // Extract stack trace patterns (file:line patterns)
+              const stackRegex = /(?:at\s+)?[\w./]+:\d+(?::\d+)?/g;
+              while ((match = stackRegex.exec(text)) !== null) {
+                patterns.push(match[0].toLowerCase());
+              }
+
+              // Extract Rust-specific panic messages
+              const panicRegex = /thread\s+'[^']+'\s+panicked\s+at\s+([^\n]+)/gi;
+              while ((match = panicRegex.exec(text)) !== null) {
+                patterns.push(match[1].trim().toLowerCase());
+              }
+
+              // Extract error codes (e.g., E0001, ERR_001)
+              const errorCodeRegex = /\b[A-Z]+[-_]?\d+\b/g;
+              while ((match = errorCodeRegex.exec(text)) !== null) {
+                patterns.push(match[0].toLowerCase());
+              }
+
+              return patterns;
+            }
+
+            function calculateSimilarity(str1, str2) {
+              if (!str1 || !str2) return 0;
+
+              // Tokenize
+              const tokens1 = new Set(str1.split(/\s+/).filter(t => t.length > 2));
+              const tokens2 = new Set(str2.split(/\s+/).filter(t => t.length > 2));
+
+              if (tokens1.size === 0 || tokens2.size === 0) return 0;
+
+              // Jaccard similarity
+              const intersection = new Set([...tokens1].filter(x => tokens2.has(x)));
+              const union = new Set([...tokens1, ...tokens2]);
+
+              return intersection.size / union.size;
+            }
+
+            function checkErrorPatternMatch(patterns, text) {
+              if (patterns.length === 0) return false;
+
+              for (const pattern of patterns) {
+                if (pattern.length > 5 && text.includes(pattern)) {
+                  return true;
+                }
+              }
+              return false;
+            }
+
+            function calculateDuplicateScore(titleSim, bodySim, errorMatch) {
+              // Weighted scoring
+              let score = (titleSim * 0.4) + (bodySim * 0.3);
+
+              // Bonus for error pattern match
+              if (errorMatch) {
+                score += 0.3;
+              }
+
+              return Math.min(score, 1.0);
+            }
