@@ -2,6 +2,7 @@ mod api;
 mod cli;
 mod commands;
 mod config;
+mod error_report;
 mod output;
 
 use anyhow::Result;
@@ -14,7 +15,7 @@ use colored::Colorize;
 
 use api::RepsonaClient;
 use cli::{Cli, Commands, Shell as ClapShell, UtilCommands};
-use commands::{config as config_cmd, me, project, task, note, file, tag, inbox, space, user, webhook, idlink, util};
+use commands::{config as config_cmd, me, project, task, note, file, tag, inbox, space, user, webhook, idlink, util, report};
 
 fn generate_shell_completion(shell: ClapShell) {
     let mut cmd = Cli::command();
@@ -118,6 +119,11 @@ async fn main() -> Result<()> {
             generate_skill_file(output)?;
             return Ok(());
         }
+        Commands::Report(cmd) => {
+            // Report commands don't require credentials
+            report::handle(cmd).await?;
+            return Ok(());
+        }
         _ => {}
     }
 
@@ -153,6 +159,7 @@ async fn main() -> Result<()> {
         Commands::Idlink(cmd) => idlink::handle(&client, cmd, cli.json).await?,
         Commands::Completion { .. } => unreachable!(),
         Commands::SkillGenerate { .. } => unreachable!(),
+        Commands::Report(_) => unreachable!(),
     }
 
     Ok(())
