@@ -131,8 +131,6 @@ pub enum Commands {
 pub enum UtilCommands {
     /// Show version information (rpsn version number)
     Version,
-    /// Show detailed help information
-    Help,
     /// Ping the API to verify connection and credentials
     Ping,
 }

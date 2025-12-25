@@ -141,9 +141,6 @@ async fn main() -> Result<()> {
         Commands::Util(UtilCommands::Version) => {
             util::handle_version();
         }
-        Commands::Util(UtilCommands::Help) => {
-            Cli::command().print_long_help()?;
-        }
         Commands::Util(UtilCommands::Ping) => util::handle_ping(&client).await?,
         Commands::Config(cmd) => config_cmd::handle(cmd).await?,
         Commands::Me(cmd) => me::handle(&client, cmd, cli.json).await?,
