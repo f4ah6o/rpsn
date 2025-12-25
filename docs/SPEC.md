@@ -17,19 +17,17 @@ rpsn is a command-line interface for Repsona task management system, providing 1
 rpsn/
 ├── Cargo.toml
 ├── README.md
+├── docs/
+│   └── SPEC.md                   # This specification
 ├── src/
-│   ├── main.rs
-│   ├── lib.rs
+│   ├── main.rs                   # Entry point with CLI handling
 │   ├── cli.rs                    # Clap CLI structure
 │   ├── config.rs                 # Config management
 │   ├── output.rs                 # Output formatting
-│   ├── completion.rs             # Shell completion generation
-│   ├── skill_gen.rs              # Auto-generate skills from CLI
 │   ├── api/
 │   │   ├── mod.rs
 │   │   ├── client.rs             # HTTP client with --trace support
-│   │   ├── types.rs              # API response types
-│   │   ├── error.rs              # API error handling
+│   │   ├── types.rs              # API response types and wrappers
 │   │   └── endpoints/
 │   │       ├── mod.rs
 │   │       ├── me.rs
@@ -56,7 +54,8 @@ rpsn/
 │       ├── inbox.rs
 │       ├── space.rs
 │       ├── user.rs
-│       └── webhook.rs
+│       ├── webhook.rs
+│       └── idlink.rs
 ├── .claude/
 │   └── skills/
 │       └── rpsn/
@@ -173,11 +172,21 @@ impl RepsonaClient {
 
 **Key Types:**
 ```rust
+// Generic API response wrapper - data is accessed via response.data.xxx
 pub struct ApiResponse<T> {
-    pub requestedBy: u64,
+    #[serde(rename = "requestedBy")]
+    pub requested_by: u64,
     #[serde(flatten)]
     pub data: T,
 }
+
+// Response wrapper types for proper JSON deserialization
+pub struct UserData { pub user: User }
+pub struct ProjectData { pub project: Project }
+pub struct TaskData { pub task: Task }
+pub struct TasksData { pub tasks: Vec<Task> }
+pub struct ProjectsData { pub projects: Vec<Project> }
+// ... etc for each entity type
 
 pub struct User {
     pub id: u64,

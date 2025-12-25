@@ -9,13 +9,13 @@ pub async fn handle(client: &RepsonaClient, command: IdlinkCommands, json: bool)
     match command {
         IdlinkCommands::List => {
             let response = client.list_idlinks().await?;
-            print(&response.idlink, format)?;
+            print(&response.data.idlinks, format)?;
         }
         IdlinkCommands::Create { name, url } => {
             let request = CreateIdLinkRequest { name, url };
             let response = client.create_idlink(&request).await?;
-            print(&response.idlink, format)?;
-            print_success(&format!("ID link '{}' created", response.idlink.name));
+            print(&response.data.idlink, format)?;
+            print_success(&format!("ID link '{}' created", response.data.idlink.name));
         }
         IdlinkCommands::Delete { idlink_id } => {
             client.delete_idlink(idlink_id).await?;

@@ -226,3 +226,156 @@ pub struct Change {
     pub from: Option<String>,
     pub to: Option<String>,
 }
+
+// Response wrapper types for flattened ApiResponse
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserData {
+    pub user: User,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ProjectData {
+    pub project: Project,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TaskData {
+    pub task: Task,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NoteData {
+    pub note: Note,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SpaceData {
+    pub space: Space,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ProjectsData {
+    pub projects: Vec<Project>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TasksData {
+    pub tasks: Vec<Task>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NotesData {
+    pub notes: Vec<Note>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UsersData {
+    pub users: Vec<User>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TagsData {
+    pub tags: Vec<Tag>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct StatusesData {
+    pub statuses: Vec<Status>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct MilestonesData {
+    pub milestones: Vec<Milestone>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TaskCommentsData {
+    pub task_comments: Vec<TaskComment>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TaskCommentData {
+    pub task_comment: TaskComment,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NoteCommentsData {
+    pub note_comments: Vec<NoteComment>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NoteCommentData {
+    pub note_comment: NoteComment,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ActivityData {
+    pub activity: Vec<Activity>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HistoryData {
+    pub history: Vec<History>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct InboxData {
+    pub inbox: Vec<InboxItem>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct InboxItemData {
+    pub inbox: InboxItem,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UnreadCountData {
+    pub count: u64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TaskCountData {
+    pub count: u64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct WebhooksData {
+    pub webhooks: Vec<Webhook>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct WebhookData {
+    pub webhook: Webhook,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct IdLinksData {
+    pub idlinks: Vec<IdLink>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct IdLinkData {
+    pub idlink: IdLink,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct FilesData {
+    pub files: Vec<File>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct FileData {
+    pub file: File,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Invite {
+    pub id: u64,
+    pub email: String,
+    pub role: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct InviteData {
+    pub invite: Invite,
+}

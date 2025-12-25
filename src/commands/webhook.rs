@@ -9,21 +9,21 @@ pub async fn handle(client: &RepsonaClient, command: WebhookCommands, json: bool
     match command {
         WebhookCommands::List => {
             let response = client.list_webhooks().await?;
-            print(&response.webhook, format)?;
+            print(&response.data.webhooks, format)?;
         }
         WebhookCommands::Create { name, url, events } => {
             let events_vec: Vec<String> = events.split(',').map(|s| s.trim().to_string()).collect();
             let request = CreateWebhookRequest { name, url, events: events_vec };
             let response = client.create_webhook(&request).await?;
-            print(&response.webhook, format)?;
-            print_success(&format!("Webhook '{}' created", response.webhook.name));
+            print(&response.data.webhook, format)?;
+            print_success(&format!("Webhook '{}' created", response.data.webhook.name));
         }
         WebhookCommands::Update { webhook_id, name, url, events } => {
             let events_vec = events.map(|e| e.split(',').map(|s| s.trim().to_string()).collect());
             let request = UpdateWebhookRequest { name, url, events: events_vec };
             let response = client.update_webhook(webhook_id, &request).await?;
-            print(&response.webhook, format)?;
-            print_success(&format!("Webhook '{}' updated", response.webhook.name));
+            print(&response.data.webhook, format)?;
+            print_success(&format!("Webhook '{}' updated", response.data.webhook.name));
         }
         WebhookCommands::Delete { webhook_id } => {
             client.delete_webhook(webhook_id).await?;

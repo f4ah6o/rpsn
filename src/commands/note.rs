@@ -9,11 +9,11 @@ pub async fn handle(client: &RepsonaClient, command: NoteCommands, json: bool) -
     match command {
         NoteCommands::List { project_id } => {
             let response = client.list_notes(project_id).await?;
-            print(&response.notes, format)?;
+            print(&response.data.notes, format)?;
         }
         NoteCommands::Get { project_id, note_id } => {
             let response = client.get_note(project_id, note_id).await?;
-            print(&response.note, format)?;
+            print(&response.data.note, format)?;
         }
         NoteCommands::Create { project_id, name, description, parent, tags, add_to_bottom } => {
             let tags_vec = tags.map(|t| t.split(',').filter_map(|s| s.trim().parse().ok()).collect());
@@ -25,15 +25,15 @@ pub async fn handle(client: &RepsonaClient, command: NoteCommands, json: bool) -
                 add_to_bottom: Some(add_to_bottom),
             };
             let response = client.create_note(project_id, &request).await?;
-            print(&response.note, format)?;
-            print_success(&format!("Note '{}' created", response.note.name));
+            print(&response.data.note, format)?;
+            print_success(&format!("Note '{}' created", response.data.note.name));
         }
         NoteCommands::Update { project_id, note_id, name, description, tags } => {
             let tags_vec = tags.map(|t| t.split(',').filter_map(|s| s.trim().parse().ok()).collect());
             let request = UpdateNoteRequest { name, description, tags: tags_vec };
             let response = client.update_note(project_id, note_id, &request).await?;
-            print(&response.note, format)?;
-            print_success(&format!("Note '{}' updated", response.note.name));
+            print(&response.data.note, format)?;
+            print_success(&format!("Note '{}' updated", response.data.note.name));
         }
         NoteCommands::Delete { project_id, note_id } => {
             client.delete_note(project_id, note_id).await?;
@@ -41,20 +41,20 @@ pub async fn handle(client: &RepsonaClient, command: NoteCommands, json: bool) -
         }
         NoteCommands::Children { project_id, note_id } => {
             let response = client.get_note_children(project_id, note_id).await?;
-            print(&response.notes, format)?;
+            print(&response.data.notes, format)?;
         }
         NoteCommands::CommentList { project_id, note_id } => {
             let response = client.list_note_comments(project_id, note_id).await?;
-            print(&response.note_comments, format)?;
+            print(&response.data.note_comments, format)?;
         }
         NoteCommands::CommentAdd { project_id, note_id, comment } => {
             let response = client.add_note_comment(project_id, note_id, comment).await?;
-            print(&response.note_comment, format)?;
+            print(&response.data.note_comment, format)?;
             print_success("Comment added");
         }
         NoteCommands::CommentUpdate { project_id, note_id, comment_id, comment } => {
             let response = client.update_note_comment(project_id, note_id, comment_id, comment).await?;
-            print(&response.note_comment, format)?;
+            print(&response.data.note_comment, format)?;
             print_success("Comment updated");
         }
         NoteCommands::CommentDelete { project_id, note_id, comment_id } => {
@@ -63,11 +63,11 @@ pub async fn handle(client: &RepsonaClient, command: NoteCommands, json: bool) -
         }
         NoteCommands::Activity { project_id, note_id } => {
             let response = client.get_note_activity(project_id, note_id).await?;
-            print(&response.activity, format)?;
+            print(&response.data.activity, format)?;
         }
         NoteCommands::History { project_id, note_id } => {
             let response = client.get_note_history(project_id, note_id).await?;
-            print(&response.history, format)?;
+            print(&response.data.history, format)?;
         }
     }
 

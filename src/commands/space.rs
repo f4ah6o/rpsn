@@ -9,11 +9,11 @@ pub async fn handle(client: &RepsonaClient, command: SpaceCommands, json: bool) 
     match command {
         SpaceCommands::Get => {
             let response = client.get_space().await?;
-            print(&response.space, format)?;
+            print(&response.data.space, format)?;
         }
         SpaceCommands::Invite { email, role } => {
             let role = role.unwrap_or_else(|| "member".to_string());
-            let request = InviteRequest { email, role };
+            let request = InviteRequest { email: email.clone(), role };
             client.invite_to_space(&request).await?;
             print_success(&format!("Invitation sent to {}", email));
         }

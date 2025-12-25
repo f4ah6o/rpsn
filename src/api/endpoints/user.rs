@@ -14,23 +14,23 @@ pub struct SetPaymentRequest {
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn list_users(&self) -> Result<ApiResponse<Vec<User>>> {
+    pub async fn list_users(&self) -> Result<ApiResponse<UsersData>> {
         self.get("user").await
     }
 
-    pub async fn get_user(&self, user_id: u64) -> Result<ApiResponse<User>> {
+    pub async fn get_user(&self, user_id: u64) -> Result<ApiResponse<UserData>> {
         self.get(&format!("user/{}", user_id)).await
     }
 
-    pub async fn set_user_role(&self, user_id: u64, request: &SetUserRoleRequest) -> Result<ApiResponse<User>> {
+    pub async fn set_user_role(&self, user_id: u64, request: &SetUserRoleRequest) -> Result<ApiResponse<UserData>> {
         self.patch(&format!("user/{}/role", user_id), request).await
     }
 
-    pub async fn set_user_payment(&self, user_id: u64, request: &SetPaymentRequest) -> Result<ApiResponse<User>> {
+    pub async fn set_user_payment(&self, user_id: u64, request: &SetPaymentRequest) -> Result<ApiResponse<UserData>> {
         self.patch(&format!("user/{}/payment", user_id), request).await
     }
 
-    pub async fn get_user_activity(&self, user_id: u64) -> Result<ApiResponse<Vec<Activity>>> {
+    pub async fn get_user_activity(&self, user_id: u64) -> Result<ApiResponse<ActivityData>> {
         self.get(&format!("user/{}/activity", user_id)).await
     }
 }

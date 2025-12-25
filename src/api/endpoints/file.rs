@@ -22,7 +22,7 @@ impl AttachModel {
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn upload_file(&self, project_id: u64, file_path: &Path) -> Result<ApiResponse<Vec<File>>> {
+    pub async fn upload_file(&self, project_id: u64, file_path: &Path) -> Result<ApiResponse<FilesData>> {
         let file_bytes = tokio::fs::read(file_path).await?;
         let file_name = file_path.file_name()
             .and_then(|n| n.to_str())

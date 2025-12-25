@@ -1,6 +1,6 @@
 use crate::api::types::*;
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Default)]
 pub struct MeUpdateRequest {
@@ -35,45 +35,45 @@ pub struct TaskFilter {
     pub ball_holding_users: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TaskCount {
     pub count: u64,
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn get_me(&self) -> Result<ApiResponse<User>> {
+    pub async fn get_me(&self) -> Result<ApiResponse<UserData>> {
         self.get("me").await
     }
 
-    pub async fn update_me(&self, updates: MeUpdateRequest) -> Result<ApiResponse<User>> {
+    pub async fn update_me(&self, updates: MeUpdateRequest) -> Result<ApiResponse<UserData>> {
         self.patch("me", &updates).await
     }
 
-    pub async fn get_me_tasks(&self, filter: &TaskFilter) -> Result<ApiResponse<Vec<Task>>> {
+    pub async fn get_me_tasks(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
         self.get("me/tasks").await
     }
 
-    pub async fn get_me_tasks_responsible(&self, filter: &TaskFilter) -> Result<ApiResponse<Vec<Task>>> {
+    pub async fn get_me_tasks_responsible(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
         self.get("me/tasks/responsible").await
     }
 
-    pub async fn get_me_tasks_ball_holding(&self, filter: &TaskFilter) -> Result<ApiResponse<Vec<Task>>> {
+    pub async fn get_me_tasks_ball_holding(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
         self.get("me/tasks/ballHolding").await
     }
 
-    pub async fn get_me_tasks_following(&self, filter: &TaskFilter) -> Result<ApiResponse<Vec<Task>>> {
+    pub async fn get_me_tasks_following(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
         self.get("me/tasks/following").await
     }
 
-    pub async fn get_me_tasks_count(&self) -> Result<ApiResponse<TaskCount>> {
+    pub async fn get_me_tasks_count(&self) -> Result<ApiResponse<TaskCountData>> {
         self.get("me/tasks/count").await
     }
 
-    pub async fn get_me_projects(&self) -> Result<ApiResponse<Vec<Project>>> {
+    pub async fn get_me_projects(&self) -> Result<ApiResponse<ProjectsData>> {
         self.get("me/projects").await
     }
 
-    pub async fn get_me_activity(&self) -> Result<ApiResponse<Vec<Activity>>> {
+    pub async fn get_me_activity(&self) -> Result<ApiResponse<ActivityData>> {
         self.get("me/activity").await
     }
 }

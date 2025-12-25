@@ -9,11 +9,11 @@ pub async fn handle(client: &RepsonaClient, command: InboxCommands, json: bool) 
     match command {
         InboxCommands::List => {
             let response = client.list_inbox().await?;
-            print(&response.inbox, format)?;
+            print(&response.data.inbox, format)?;
         }
         InboxCommands::Update { inbox_id } => {
             let response = client.update_inbox(inbox_id, true).await?;
-            print(&response.inbox_item, format)?;
+            print(&response.data.inbox, format)?;
             print_success("Inbox item marked as read");
         }
         InboxCommands::ReadAll => {
@@ -22,7 +22,7 @@ pub async fn handle(client: &RepsonaClient, command: InboxCommands, json: bool) 
         }
         InboxCommands::UnreadCount => {
             let response = client.get_inbox_unread_count().await?;
-            println!("Unread items: {}", response);
+            println!("Unread items: {}", response.data.count);
         }
     }
 

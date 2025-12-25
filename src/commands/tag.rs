@@ -9,7 +9,7 @@ pub async fn handle(client: &RepsonaClient, command: TagCommands, json: bool) ->
     match command {
         TagCommands::List => {
             let response = client.list_tags().await?;
-            print(&response.tags, format)?;
+            print(&response.data.tags, format)?;
         }
     }
 

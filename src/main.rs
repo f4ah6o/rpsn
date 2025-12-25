@@ -25,13 +25,12 @@ fn generate_shell_completion(shell: ClapShell) {
         ClapShell::Fish => generate(Shell::Fish, &mut cmd, "rpsn", &mut buf),
         ClapShell::Elvish => generate(Shell::Elvish, &mut cmd, "rpsn", &mut buf),
         ClapShell::Powershell => generate(Shell::PowerShell, &mut cmd, "rpsn", &mut buf),
-    }
-    .unwrap();
+    };
     print!("{}", String::from_utf8(buf).unwrap());
 }
 
 fn generate_skill_file(output: Option<String>) -> Result<()> {
-    let mut cmd = Cli::command();
+    let cmd = Cli::command();
 
     let mut skill_content = String::new();
     skill_content.push_str("---\n");
@@ -126,7 +125,7 @@ async fn main() -> Result<()> {
 
     if space_id.is_empty() || api_token.is_empty() {
         eprintln!("{}", "Error: No credentials configured".red().bold());
-        eprintln!("{}", "Run 'rpsn config init' to initialize, then 'rpsn config set --space <id> --token <token>' to set credentials".dim());
+        eprintln!("{}", "Run 'rpsn config init' to initialize, then 'rpsn config set --space <id> --token <token>' to set credentials".dimmed());
         std::process::exit(1);
     }
 
@@ -138,10 +137,9 @@ async fn main() -> Result<()> {
         }
         Commands::Util(UtilCommands::Help) => {
             Cli::command().print_long_help()?;
-            Ok(())
         }
         Commands::Util(UtilCommands::Ping) => util::handle_ping(&client).await?,
-        Commands::Config(cmd) => config::handle(cmd).await?,
+        Commands::Config(cmd) => config_cmd::handle(cmd).await?,
         Commands::Me(cmd) => me::handle(&client, cmd, cli.json).await?,
         Commands::Project(cmd) => project::handle(&client, cmd, cli.json).await?,
         Commands::Task(cmd) => task::handle(&client, cmd, cli.json).await?,
