@@ -1,6 +1,6 @@
 use crate::api::types::*;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize, Default)]
 pub struct MeUpdateRequest {
@@ -33,11 +33,6 @@ pub struct TaskFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "ballHoldingUsers")]
     pub ball_holding_users: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TaskCount {
-    pub count: u64,
 }
 
 impl crate::api::RepsonaClient {
