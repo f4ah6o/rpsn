@@ -3,7 +3,7 @@
 use anyhow::Result;
 use colored::Colorize;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, IsTerminal, Read};
 
 use crate::cli::ReportCommands;
 use crate::error_report::{ErrorReport, SensitiveData};
@@ -29,6 +29,17 @@ async fn handle_generate(
     let error_text = if let Some(msg) = error_msg {
         msg
     } else {
+        // Check if stdin is a terminal (not piped)
+        if io::stdin().is_terminal() {
+            return Err(anyhow::anyhow!(
+                "No error message provided.\n\n\
+                 Usage:\n  \
+                 rpsn report generate --error \"<error message>\"\n  \
+                 echo \"<error>\" | rpsn report generate\n  \
+                 rpsn some-command 2>&1 | rpsn report generate\n\n\
+                 Run 'rpsn report info' for more details."
+            ));
+        }
         let mut buffer = String::new();
         io::stdin().read_to_string(&mut buffer)?;
         buffer.trim().to_string()
