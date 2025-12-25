@@ -231,3 +231,278 @@ pub fn print_success(message: &str) {
 pub fn print_progress(message: &str) {
     eprintln!("{}", message.dimmed());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_output_format_json() {
+        #[derive(Serialize)]
+        struct TestData {
+            name: String,
+            value: i32,
+        }
+
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let result = print(&data, OutputFormat::Json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_user() {
+        let user_data = json!({
+            "user": {
+                "id": 123,
+                "fullName": "Test User",
+                "email": "test@example.com",
+                "role": "admin"
+            }
+        });
+
+        let result = print(&user_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_project() {
+        let project_data = json!({
+            "project": {
+                "id": 456,
+                "name": "project1",
+                "fullName": "My Project",
+                "purpose": "Testing"
+            }
+        });
+
+        let result = print(&project_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_task() {
+        let task_data = json!({
+            "task": {
+                "id": 789,
+                "name": "Test Task",
+                "description": "A test task",
+                "status": {
+                    "name": "Open"
+                },
+                "priority": 2
+            }
+        });
+
+        let result = print(&task_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_projects_list() {
+        let projects_data = json!({
+            "projects": [
+                {
+                    "id": 1,
+                    "name": "project1",
+                    "isClosed": false
+                },
+                {
+                    "id": 2,
+                    "name": "project2",
+                    "isClosed": true
+                }
+            ]
+        });
+
+        let result = print(&projects_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_tasks_list() {
+        let tasks_data = json!({
+            "tasks": [
+                {
+                    "id": 1,
+                    "name": "Task 1",
+                    "status": {"name": "Open"},
+                    "priority": 0,
+                    "dueDate": null
+                },
+                {
+                    "id": 2,
+                    "name": "Task 2",
+                    "status": {"name": "Done"},
+                    "priority": 1,
+                    "dueDate": 1640000000
+                }
+            ]
+        });
+
+        let result = print(&tasks_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_notes_list() {
+        let notes_data = json!({
+            "notes": [
+                {
+                    "id": 1,
+                    "name": "Note 1",
+                    "updatedAt": 1640000000
+                },
+                {
+                    "id": 2,
+                    "name": "Note 2",
+                    "updatedAt": 1640001000
+                }
+            ]
+        });
+
+        let result = print(&notes_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_users_list() {
+        let users_data = json!({
+            "users": [
+                {
+                    "id": 1,
+                    "fullName": "User 1",
+                    "email": "user1@example.com",
+                    "role": "admin"
+                },
+                {
+                    "id": 2,
+                    "fullName": "User 2",
+                    "email": "user2@example.com",
+                    "role": "member"
+                }
+            ]
+        });
+
+        let result = print(&users_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_tags_list() {
+        let tags_data = json!({
+            "tags": [
+                {
+                    "id": 1,
+                    "name": "bug",
+                    "color": "#ff0000"
+                },
+                {
+                    "id": 2,
+                    "name": "feature",
+                    "color": "#00ff00"
+                }
+            ]
+        });
+
+        let result = print(&tags_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_space() {
+        let space_data = json!({
+            "space": {
+                "id": 111,
+                "name": "myspace",
+                "fullName": "My Workspace",
+                "status": "active"
+            }
+        });
+
+        let result = print(&space_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_json_value_with_note() {
+        let note_data = json!({
+            "note": {
+                "id": 999,
+                "name": "My Note",
+                "description": "Note description"
+            }
+        });
+
+        let result = print(&note_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_empty_tasks_list() {
+        let empty_tasks = json!({
+            "tasks": []
+        });
+
+        let result = print(&empty_tasks, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_empty_projects_list() {
+        let empty_projects = json!({
+            "projects": []
+        });
+
+        let result = print(&empty_projects, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_unknown_json_structure() {
+        let unknown_data = json!({
+            "unknown_field": "value",
+            "another_field": 123
+        });
+
+        let result = print(&unknown_data, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_task_with_null_fields() {
+        let task_with_nulls = json!({
+            "task": {
+                "id": 1,
+                "name": "Task",
+                "description": null,
+                "status": {"name": "Open"},
+                "priority": 0,
+                "responsibleUser": null,
+                "dueDate": null
+            }
+        });
+
+        let result = print(&task_with_nulls, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_print_user_with_all_fields() {
+        let full_user = json!({
+            "user": {
+                "id": 123,
+                "fullName": "Complete User",
+                "email": "complete@example.com",
+                "role": "admin"
+            }
+        });
+
+        let result = print(&full_user, OutputFormat::Human);
+        assert!(result.is_ok());
+    }
+}
