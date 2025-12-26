@@ -65,7 +65,11 @@ impl crate::api::RepsonaClient {
     }
 
     pub async fn get_me_projects(&self) -> Result<ApiResponse<ProjectsData>> {
-        self.get("me/projects").await
+        // The API doesn't provide a dedicated /me/projects endpoint.
+        // Listing projects from the global endpoint returns only the projects
+        // the current user can access, which matches the expected behavior for
+        // `rpsn me projects`.
+        self.get("project").await
     }
 
     pub async fn get_me_activity(&self) -> Result<ApiResponse<ActivityData>> {
