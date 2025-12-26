@@ -6,7 +6,7 @@ mod error_report;
 mod output;
 
 use anyhow::Result;
-use clap::{CommandFactory, Parser};
+use clap::{CommandFactory, FromArgMatches};
 use clap_complete::{generate, Shell};
 use std::fs;
 use std::path::PathBuf;
@@ -15,7 +15,10 @@ use colored::Colorize;
 
 use api::RepsonaClient;
 use cli::{Cli, Commands, Shell as ClapShell, UtilCommands};
-use commands::{config as config_cmd, me, project, task, note, file, tag, inbox, space, user, webhook, idlink, util, report};
+use commands::{
+    config as config_cmd, file, idlink, inbox, me, note, project, report, space, tag, task, user,
+    util, webhook,
+};
 
 fn generate_shell_completion(shell: ClapShell) {
     let mut cmd = Cli::command();
@@ -39,7 +42,9 @@ fn generate_skill_file(output: Option<String>) -> Result<()> {
     skill_content.push_str("description: Interact with Repsona task management via rpsn CLI\n");
     skill_content.push_str("---\n\n");
     skill_content.push_str("# rpsn Agent Skill\n\n");
-    skill_content.push_str("This skill provides access to rpsn CLI commands for Repsona task management.\n\n");
+    skill_content.push_str(
+        "This skill provides access to rpsn CLI commands for Repsona task management.\n\n",
+    );
     skill_content.push_str("## Categories\n\n");
 
     let subcommands = cmd.get_subcommands();
@@ -51,14 +56,20 @@ fn generate_skill_file(output: Option<String>) -> Result<()> {
             continue;
         }
 
-        let description = subcmd.get_about().map(|s| s.to_string()).unwrap_or_default();
+        let description = subcmd
+            .get_about()
+            .map(|s| s.to_string())
+            .unwrap_or_default();
 
         skill_content.push_str(&format!("### {} - {}\n", name, description));
         skill_content.push_str("```bash\n");
 
         for sub in subcmd.get_subcommands() {
             let sub_name = sub.get_name();
-            let sub_desc = sub.get_about().map(|s| s.to_string()).unwrap_or_else(|| "".to_string());
+            let sub_desc = sub
+                .get_about()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "".to_string());
             skill_content.push_str(&format!("rpsn {} {} - {}\n", name, sub_name, sub_desc));
         }
 
@@ -101,14 +112,34 @@ fn generate_skill_file(output: Option<String>) -> Result<()> {
     }
 
     fs::write(&output_path, skill_content)?;
-    println!("{}", format!("Skill file generated at: {}", output_path.display()).green().bold().to_string());
+    println!(
+        "{}",
+        format!("Skill file generated at: {}", output_path.display())
+            .green()
+            .bold()
+            .to_string()
+    );
 
     Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let mut cmd = Cli::command();
+
+    if std::env::var_os("REPSONA_TOKEN").is_some() {
+        cmd = cmd.mut_arg("token", |arg| {
+            arg.help("API Token (overrides config) [REPSONA_TOKEN is set]")
+                .hide_env_values(true)
+        });
+    } else {
+        cmd = cmd.mut_arg("token", |arg| {
+            arg.help("API Token (overrides config)")
+                .hide_env_values(true)
+        });
+    }
+
+    let cli = Cli::from_arg_matches(&cmd.get_matches())?;
 
     match cli.command {
         Commands::Completion { shell } => {
