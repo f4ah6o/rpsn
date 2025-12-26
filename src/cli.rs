@@ -2,7 +2,9 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(name = "rpsn")]
-#[command(about = "Repsona Task Management CLI - Manage tasks, projects, and notes from the command line")]
+#[command(
+    about = "Repsona Task Management CLI - Manage tasks, projects, and notes from the command line"
+)]
 #[command(version = "0.1.0")]
 #[command(long_about = r#"rpsn - Repsona Task Management CLI
 
@@ -27,7 +29,7 @@ pub struct Cli {
     pub space: Option<String>,
 
     /// API Token (overrides config)
-    #[arg(long, env = "REPSONA_TOKEN")]
+    #[arg(long, env = "REPSONA_TOKEN", hide_env_values = true)]
     pub token: Option<String>,
 
     /// Config profile to use
