@@ -10,7 +10,7 @@ pub struct InviteRequest {
 
 impl crate::api::RepsonaClient {
     pub async fn get_space(&self) -> Result<ApiResponse<SpaceData>> {
-        self.get("space").await
+        self.get("space/base").await
     }
 
     pub async fn invite_to_space(&self, request: &InviteRequest) -> Result<ApiResponse<InviteData>> {

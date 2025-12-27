@@ -15,6 +15,6 @@ impl crate::api::RepsonaClient {
     }
 
     pub async fn get_inbox_unread_count(&self) -> Result<ApiResponse<UnreadCountData>> {
-        self.get("inbox/unreadCount").await
+        self.get("inbox/unread_count").await
     }
 }

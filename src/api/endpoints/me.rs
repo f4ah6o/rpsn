@@ -45,34 +45,30 @@ impl crate::api::RepsonaClient {
     }
 
     pub async fn get_me_tasks(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
-        self.get("me/tasks").await
+        self.get("me/task/all").await
     }
 
     pub async fn get_me_tasks_responsible(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
-        self.get("me/tasks/responsible").await
+        self.get("me/task/responsible").await
     }
 
     pub async fn get_me_tasks_ball_holding(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
-        self.get("me/tasks/ballHolding").await
+        self.get("me/task/ballHolding").await
     }
 
     pub async fn get_me_tasks_following(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
-        self.get("me/tasks/following").await
+        self.get("me/task/following").await
     }
 
     pub async fn get_me_tasks_count(&self) -> Result<ApiResponse<TaskCountData>> {
-        self.get("me/tasks/count").await
+        self.get("me/task/all/count").await
     }
 
     pub async fn get_me_projects(&self) -> Result<ApiResponse<ProjectsData>> {
-        // The API doesn't provide a dedicated /me/projects endpoint.
-        // Listing projects from the global endpoint returns only the projects
-        // the current user can access, which matches the expected behavior for
-        // `rpsn me projects`.
-        self.get("project").await
+        self.get("me/project").await
     }
 
     pub async fn get_me_activity(&self) -> Result<ApiResponse<ActivityData>> {
-        self.get("me/activity").await
+        self.get("feed").await
     }
 }
