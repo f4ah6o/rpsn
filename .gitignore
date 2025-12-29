@@ -28,3 +28,6 @@ refs/
 # Added by cargo
 
 /target
+
+# Property-Based Testing regression files
+proptest-regressions/
