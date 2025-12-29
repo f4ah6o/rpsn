@@ -377,6 +377,7 @@ pub struct InviteData {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
     use super::*;
 
     #[test]
@@ -783,5 +784,139 @@ mod tests {
         assert_eq!(space.full_name, "My Workspace");
         assert_eq!(space.information, Some("Team workspace".to_string()));
         assert_eq!(space.status, "active");
+    }
+
+    // =========================================================================
+    // Property-Based Tests
+    // =========================================================================
+
+    proptest! {
+        /// Property: UserのJSON往復で全フィールドが保持される
+        #[test]
+        fn prop_user_json_roundtrip(
+            id in 1u64..1000000u64,
+            email in "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+            name in "[a-zA-Z0-9_]{1,32}",
+            full_name in "[a-zA-Z ]{1,64}",
+            role in "[a-zA-Z]{3,20}",
+            billing_status in "[a-zA-Z]{3,20}",
+            created_at in 1000000000u64..2000000000u64,
+            updated_at in 1000000000u64..2000000000u64,
+        ) {
+            let user = User {
+                id,
+                email: email.clone(),
+                name: name.clone(),
+                full_name: full_name.clone(),
+                avatar_url: None,
+                role: role.clone(),
+                billing_status: billing_status.clone(),
+                created_at,
+                updated_at,
+            };
+
+            // JSON往復
+            let serialized = serde_json::to_string(&user).unwrap();
+            let deserialized: User = serde_json::from_str(&serialized).unwrap();
+
+            prop_assert_eq!(deserialized.id, id);
+            prop_assert_eq!(deserialized.email, email);
+            prop_assert_eq!(deserialized.name, name);
+            prop_assert_eq!(deserialized.full_name, full_name);
+            prop_assert_eq!(deserialized.role, role);
+            prop_assert_eq!(deserialized.billing_status, billing_status);
+            prop_assert_eq!(deserialized.created_at, created_at);
+            prop_assert_eq!(deserialized.updated_at, updated_at);
+        }
+
+        /// Property: Optionフィールドがnull/valueを正しく扱う
+        #[test]
+        fn prop_user_option_fields_handle_null(
+            id in 1u64..1000000u64,
+            email in "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+            name in "[a-zA-Z0-9_]{1,32}",
+            full_name in "[a-zA-Z ]{1,64}",
+            avatar_url in prop::option::of("https?://[a-zA-Z0-9.-]+/.*"),
+        ) {
+            let user = User {
+                id,
+                email: email.clone(),
+                name: name.clone(),
+                full_name: full_name.clone(),
+                avatar_url: avatar_url.clone(),
+                role: "member".to_string(),
+                billing_status: "active".to_string(),
+                created_at: 1000000000,
+                updated_at: 1000001000,
+            };
+
+            // JSON往復
+            let serialized = serde_json::to_string(&user).unwrap();
+            let deserialized: User = serde_json::from_str(&serialized).unwrap();
+
+            prop_assert_eq!(deserialized.avatar_url, avatar_url);
+        }
+
+        /// Property: ProjectのJSON往復で全フィールドが保持される
+        #[test]
+        fn prop_project_json_roundtrip(
+            id in 1u64..1000000u64,
+            name in "[a-zA-Z0-9_-]{1,50}",
+            full_name in "[a-zA-Z0-9_ -]{1,100}",
+            purpose in prop::option::of("[a-zA-Z0-9 ]{1,200}"),
+            avatar_url in prop::option::of("https?://[a-zA-Z0-9.-]+/.*"),
+            is_closed in prop::bool::ANY,
+            is_public in prop::bool::ANY,
+        ) {
+            let project = Project {
+                id,
+                name: name.clone(),
+                full_name: full_name.clone(),
+                purpose: purpose.clone(),
+                avatar_url: avatar_url.clone(),
+                is_closed,
+                is_public,
+                created_at: 1000000000,
+                updated_at: 1000001000,
+            };
+
+            let serialized = serde_json::to_string(&project).unwrap();
+            let deserialized: Project = serde_json::from_str(&serialized).unwrap();
+
+            prop_assert_eq!(deserialized.id, id);
+            prop_assert_eq!(deserialized.name, name);
+            prop_assert_eq!(deserialized.full_name, full_name);
+            prop_assert_eq!(deserialized.purpose, purpose);
+            prop_assert_eq!(deserialized.avatar_url, avatar_url);
+            prop_assert_eq!(deserialized.is_closed, is_closed);
+            prop_assert_eq!(deserialized.is_public, is_public);
+        }
+
+        /// Property: camelCase→snake_caseのrename属性が正しく動作する
+        #[test]
+        fn prop_rename_attribute_works(
+            id in 1u64..100000u64,
+            email in "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+            name in "[a-zA-Z0-9_]{1,32}",
+            full_name in "[a-zA-Z ]{1,50}",
+            avatar_url in prop::option::of("https?://[a-zA-Z0-9.-]+/.*"),
+        ) {
+            // JSONにcamelCaseキーを使用（全必須フィールドを含める）
+            let json_camel = format!(
+                r#"{{"id":{},"email":"{}","name":"{}","fullName":"{}","avatarUrl":{},"role":"member","billingStatus":"active","createdAt":1000000000,"updatedAt":1000001000}}"#,
+                id,
+                email,
+                name,
+                full_name,
+                serde_json::to_string(&avatar_url).unwrap()
+            );
+
+            let user: Result<User, _> = serde_json::from_str(&json_camel);
+            prop_assert!(user.is_ok());
+            let user = user.unwrap();
+            prop_assert_eq!(user.id, id);
+            prop_assert_eq!(user.full_name, full_name);
+            prop_assert_eq!(user.avatar_url, avatar_url);
+        }
     }
 }

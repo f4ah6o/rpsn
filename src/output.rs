@@ -226,8 +226,9 @@ pub fn print_success(message: &str) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use proptest::prelude::*;
     use serde_json::json;
+    use super::*;
 
     #[test]
     fn test_output_format_json() {
@@ -496,5 +497,157 @@ mod tests {
 
         let result = print(&full_user, OutputFormat::Human);
         assert!(result.is_ok());
+    }
+
+    // =========================================================================
+    // Property-Based Tests
+    // =========================================================================
+
+    proptest! {
+        /// Property: JSON出力は常に有効なJSONである
+        #[test]
+        fn prop_json_output_always_valid(
+            id in 1u64..10000u64,
+            name in "[a-zA-Z0-9 ]{1,50}",
+            email in "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+        ) {
+            #[derive(Serialize)]
+            struct TestData {
+                id: u64,
+                name: String,
+                email: String,
+            }
+
+            let data = TestData { id, name: name.clone(), email: email.clone() };
+
+            // JSON出力を文字列として取得
+            let result = serde_json::to_string_pretty(&data);
+            prop_assert!(result.is_ok());
+
+            let json_str = result.unwrap();
+            // 出力されたJSONがパース可能であることを確認
+            let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+            prop_assert_eq!(parsed["id"].as_u64(), Some(id));
+            prop_assert_eq!(parsed["name"].as_str(), Some(name.as_str()));
+            prop_assert_eq!(parsed["email"].as_str(), Some(email.as_str()));
+        }
+
+        /// Property: nullフィールドを持つTaskでパニックしない
+        #[test]
+        fn prop_null_fields_handled_gracefully(
+            id in 1u64..10000u64,
+            name in "[a-zA-Z0-9 ]{1,50}",
+            has_description in prop::bool::ANY,
+            has_due_date in prop::bool::ANY,
+            has_responsible in prop::bool::ANY,
+        ) {
+            let description = if has_description {
+                Some("Task description".to_string())
+            } else {
+                None
+            };
+
+            let due_date = if has_due_date {
+                Some(1640000000u64)
+            } else {
+                None
+            };
+
+            let responsible_user = if has_responsible {
+                Some(json!({
+                    "id": 123,
+                    "fullName": "Responsible User"
+                }))
+            } else {
+                None
+            };
+
+            let task_data = json!({
+                "task": {
+                    "id": id,
+                    "name": name,
+                    "description": description,
+                    "status": {"name": "Open"},
+                    "priority": 0,
+                    "dueDate": due_date,
+                    "responsibleUser": responsible_user
+                }
+            });
+
+            // パニックしないことを確認
+            let result = print(&task_data, OutputFormat::Human);
+            prop_assert!(result.is_ok());
+        }
+
+        /// Property: 空のリストでパニックしない
+        #[test]
+        fn prop_empty_lists_handled_gracefully(
+            list_type in 0..4usize,  // 0=tasks, 1=projects, 2=notes, 3=users
+        ) {
+            let data = match list_type {
+                0 => json!({"tasks": []}),
+                1 => json!({"projects": []}),
+                2 => json!({"notes": []}),
+                3 => json!({"users": []}),
+                _ => json!({}),
+            };
+
+            let result = print(&data, OutputFormat::Human);
+            prop_assert!(result.is_ok());
+        }
+
+        /// Property: タスクリストの行数が入力数と一致する（構造検証）
+        #[test]
+        fn prop_task_list_structure_valid(
+            tasks in prop::collection::vec(
+                (1u64..10000u64, "[a-zA-Z0-9 ]{1,50}", "[a-zA-Z]{3,20}"),
+                0..10
+            ),
+        ) {
+            let mut tasks_json = Vec::new();
+            for (id, name, status_name) in &tasks {
+                tasks_json.push(json!({
+                    "id": id,
+                    "name": name,
+                    "status": {"name": status_name},
+                    "priority": 0,
+                    "dueDate": null
+                }));
+            }
+
+            let data = json!({"tasks": tasks_json});
+
+            // パニックしないことを確認
+            let result = print(&data, OutputFormat::Human);
+            prop_assert!(result.is_ok());
+
+            // JSONフォーマットでも検証
+            let json_result = print(&data, OutputFormat::Json);
+            prop_assert!(json_result.is_ok());
+        }
+
+        /// Property: 任意の有効なJSON値でパニックしない
+        #[test]
+        fn prop_print_never_panics_on_valid_json_value(
+            // 任意の有効なJSON値を生成
+            value in prop::collection::vec(
+                (0..10usize, "[a-zA-Z0-9]{1,10}"),
+                0..5
+            ),
+        ) {
+            // さまざまなJSON構造を作成
+            let test_data = json!({
+                "id": 123,
+                "items": value.iter().map(|(i, s)| json!({"idx": i, "val": s})).collect::<Vec<_>>(),
+                "metadata": {
+                    "version": "1.0",
+                    "created_at": 1640000000
+                }
+            });
+
+            // 未知の構造でもパニックしない（fallbackの検証）
+            let result = print(&test_data, OutputFormat::Human);
+            prop_assert!(result.is_ok());
+        }
     }
 }

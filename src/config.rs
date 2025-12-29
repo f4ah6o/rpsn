@@ -113,6 +113,7 @@ pub fn load_credentials() -> Result<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
     use std::env;
     use tempfile::TempDir;
 
@@ -300,5 +301,105 @@ mod tests {
         let cloned = profile.clone();
         assert_eq!(profile.space_id, cloned.space_id);
         assert_eq!(profile.api_token, cloned.api_token);
+    }
+
+    // =========================================================================
+    // Property-Based Tests
+    // =========================================================================
+
+    proptest! {
+        /// Property: TOMLシリアライズ→デシリアライズでConfigが等価
+        #[test]
+        fn prop_config_roundtrip_serialization(
+            profile_names in prop::collection::vec("[a-zA-Z0-9_-]{1,20}", 1..5),
+            space_ids in prop::collection::vec("[a-zA-Z0-9]{4,16}", 1..5),
+            api_tokens in prop::collection::vec("[a-zA-Z0-9+/=]{16,64}", 1..5),
+        ) {
+            // 最も小さいベクターのサイズに合わせる
+            let count = profile_names.len().min(space_ids.len()).min(api_tokens.len());
+
+            let mut config = Config::default();
+            for i in 0..count {
+                config.add_profile(
+                    profile_names[i].clone(),
+                    Profile {
+                        space_id: space_ids[i].clone(),
+                        api_token: api_tokens[i].clone(),
+                    }
+                );
+            }
+
+            // TOMLシリアライズ→デシリアライズ
+            let serialized = toml::to_string_pretty(&config).unwrap();
+            let deserialized: Config = toml::from_str(&serialized).unwrap();
+
+            // 全プロファイルが保持される
+            prop_assert_eq!(config.profiles.len(), deserialized.profiles.len());
+            for (name, profile) in &config.profiles {
+                let deserialized_profile = deserialized.profiles.get(name)
+                    .expect("プロファイルが見つかりません");
+                prop_assert_eq!(&profile.space_id, &deserialized_profile.space_id);
+                prop_assert_eq!(&profile.api_token, &deserialized_profile.api_token);
+            }
+        }
+
+        /// Property: Profileの認証情報は操作を通じて保持される
+        #[test]
+        fn prop_profile_preserves_credentials(
+            space_id in "[a-zA-Z0-9_-]{4,32}",
+            api_token in "[a-zA-Z0-9+/=_-]{16,128}"
+        ) {
+            let profile = Profile {
+                space_id: space_id.clone(),
+                api_token: api_token.clone(),
+            };
+
+            // 直接フィールドアクセスで検証
+            prop_assert_eq!(&profile.space_id, &space_id);
+            prop_assert_eq!(&profile.api_token, &api_token);
+
+            // TOML往復でも保持される
+            let serialized = toml::to_string(&profile).unwrap();
+            let deserialized: Profile = toml::from_str(&serialized).unwrap();
+            prop_assert_eq!(&deserialized.space_id, &space_id);
+            prop_assert_eq!(&deserialized.api_token, &api_token);
+        }
+
+        /// Property: 新規プロファイル追加で数が+1される
+        #[test]
+        fn prop_add_profile_increases_count(
+            existing_names in prop::collection::hash_set("[a-z]{3,10}", 1..5),
+            new_name in "[a-z]{3,10}"
+        ) {
+            let mut config = Config::default();
+
+            // 既存プロファイルを追加
+            for name in &existing_names {
+                config.add_profile(name.clone(), Profile {
+                    space_id: "space".to_string(),
+                    api_token: "token".to_string(),
+                });
+            }
+
+            let initial_count = config.profiles.len();
+
+            // 新規名が既存と被らない場合は追加
+            if !existing_names.contains(&new_name) {
+                config.add_profile(new_name.clone(), Profile {
+                    space_id: "new-space".to_string(),
+                    api_token: "new-token".to_string(),
+                });
+                prop_assert_eq!(config.profiles.len(), initial_count + 1);
+                prop_assert!(config.profiles.contains_key(&new_name));
+            } else {
+                // 既存名を追加しても数は変わらない
+                let before_len = config.profiles.len();
+                config.add_profile(new_name, Profile {
+                    space_id: "another-space".to_string(),
+                    api_token: "another-token".to_string(),
+                });
+                prop_assert_eq!(config.profiles.len(), before_len);
+            }
+        }
     }
 }
