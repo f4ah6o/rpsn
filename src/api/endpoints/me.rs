@@ -45,7 +45,7 @@ impl crate::api::RepsonaClient {
     }
 
     pub async fn get_me_tasks(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
-        self.get("me/task/all").await
+        self.get("me/tasks").await
     }
 
     pub async fn get_me_tasks_responsible(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
