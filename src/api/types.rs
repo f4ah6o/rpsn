@@ -1,5 +1,34 @@
 use serde::{Deserialize, Serialize};
 
+/// Task status constants for common status operations
+///
+/// These represent the default status IDs used by Repsona.
+/// Note: Actual status IDs may vary per space, so these should be used
+/// with caution and validated against the space's actual statuses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TaskStatus {
+    /// Task is completed/done (typically status ID 0)
+    Done = 0,
+    /// Task is open/reopened (typically status ID 1)
+    Open = 1,
+}
+
+impl TaskStatus {
+    /// Get the status ID for API calls
+    pub fn id(self) -> u64 {
+        self as u64
+    }
+
+    /// Create TaskStatus from an ID
+    pub fn from_id(id: u64) -> Option<Self> {
+        match id {
+            0 => Some(TaskStatus::Done),
+            1 => Some(TaskStatus::Open),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiResponse<T> {
     #[serde(rename = "requestedBy")]
@@ -379,6 +408,28 @@ pub struct InviteData {
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    #[test]
+    fn test_task_status_done_id() {
+        assert_eq!(TaskStatus::Done.id(), 0);
+    }
+
+    #[test]
+    fn test_task_status_open_id() {
+        assert_eq!(TaskStatus::Open.id(), 1);
+    }
+
+    #[test]
+    fn test_task_status_from_id_valid() {
+        assert_eq!(TaskStatus::from_id(0), Some(TaskStatus::Done));
+        assert_eq!(TaskStatus::from_id(1), Some(TaskStatus::Open));
+    }
+
+    #[test]
+    fn test_task_status_from_id_invalid() {
+        assert_eq!(TaskStatus::from_id(2), None);
+        assert_eq!(TaskStatus::from_id(99), None);
+    }
 
     #[test]
     fn test_user_deserialization() {

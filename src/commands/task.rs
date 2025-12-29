@@ -1,4 +1,4 @@
-use crate::api::{endpoints::me::TaskFilter, endpoints::task::*, RepsonaClient};
+use crate::api::{endpoints::me::TaskFilter, endpoints::task::*, types::TaskStatus, RepsonaClient};
 use crate::cli::TaskCommands;
 use crate::commands::tag::parse_tags;
 use crate::output::{print, print_success, OutputFormat};
@@ -82,7 +82,9 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
             project_id,
             task_id,
         } => {
-            let response = client.set_task_status(project_id, task_id, 0).await?;
+            let response = client
+                .set_task_status(project_id, task_id, TaskStatus::Done.id())
+                .await?;
             print(&response.data.task, format)?;
             print_success("Task marked as done");
         }
@@ -90,7 +92,9 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
             project_id,
             task_id,
         } => {
-            let response = client.set_task_status(project_id, task_id, 1).await?;
+            let response = client
+                .set_task_status(project_id, task_id, TaskStatus::Open.id())
+                .await?;
             print(&response.data.task, format)?;
             print_success("Task reopened");
         }
