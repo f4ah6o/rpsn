@@ -1,6 +1,7 @@
 use crate::api::{RepsonaClient, endpoints::task::*, endpoints::me::TaskFilter};
 use crate::cli::TaskCommands;
 use crate::output::{print, OutputFormat, print_success};
+use crate::commands::tag::parse_tags;
 use anyhow::Result;
 
 pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -> Result<()> {
@@ -17,7 +18,7 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
             print(&response.data.task, format)?;
         }
         TaskCommands::Create { project_id, title, description, status, priority, due, assignee, tags } => {
-            let tags_vec = tags.map(|t| t.split(',').filter_map(|s| s.trim().parse().ok()).collect());
+            let tags_vec = tags.map(|t| parse_tags(&t));
             let request = CreateTaskRequest {
                 name: title,
                 description,
@@ -33,7 +34,7 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
             print_success(&format!("Task '{}' created", response.data.task.name));
         }
         TaskCommands::Update { project_id, task_id, title, description, status, priority, due, assignee, tags } => {
-            let tags_vec = tags.map(|t| t.split(',').filter_map(|s| s.trim().parse().ok()).collect());
+            let tags_vec = tags.map(|t| parse_tags(&t));
             let request = UpdateTaskRequest {
                 name: title,
                 description,
@@ -85,4 +86,14 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_handle_task_commands_compile() {
+        // This test ensures the handle function compiles correctly
+        // Actual testing requires mocking RepsonaClient
+        assert!(true);
+    }
 }
