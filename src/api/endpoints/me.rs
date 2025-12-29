@@ -60,10 +60,6 @@ impl crate::api::RepsonaClient {
         self.get("me/task/following").await
     }
 
-    pub async fn get_me_tasks_count(&self) -> Result<ApiResponse<TaskCountData>> {
-        self.get("me/task/all/count").await
-    }
-
     pub async fn get_me_projects(&self) -> Result<ApiResponse<ProjectsData>> {
         self.get("me/project").await
     }

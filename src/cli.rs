@@ -196,8 +196,6 @@ pub enum MeCommands {
     TasksBallHolding,
     /// List tasks you are following for updates
     TasksFollowing,
-    /// Get a count of your tasks by status
-    TasksCount,
     /// List all projects you are a member of
     Projects,
     /// Get your recent activity log

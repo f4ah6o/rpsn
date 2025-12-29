@@ -12,7 +12,7 @@ pub async fn handle(client: &RepsonaClient, command: InboxCommands, json: bool) 
             print(&response.data.inbox, format)?;
         }
         InboxCommands::Update { inbox_id } => {
-            let response = client.update_inbox(inbox_id, true).await?;
+            let response = client.update_inbox(inbox_id, "archived").await?;
             print(&response.data.inbox, format)?;
             print_success("Inbox item marked as read");
         }

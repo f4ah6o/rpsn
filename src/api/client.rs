@@ -114,6 +114,10 @@ impl RepsonaClient {
         self.execute_request::<T>(Method::PATCH, endpoint, Some(body)).await
     }
 
+    pub async fn patch_no_body<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
+        self.execute_request::<T>(Method::PATCH, endpoint, None::<&()>).await
+    }
+
     pub async fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
         self.execute_request::<T>(Method::DELETE, endpoint, None::<&()>).await
     }
