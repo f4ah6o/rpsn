@@ -106,8 +106,9 @@ impl Config {
             .with_context(|| format!("Failed to read config file metadata: {}", path.display()))?
             .permissions();
         perms.set_mode(0o600);
-        fs::set_permissions(path, perms)
-            .with_context(|| format!("Failed to set config file permissions: {}", path.display()))?;
+        fs::set_permissions(path, perms).with_context(|| {
+            format!("Failed to set config file permissions: {}", path.display())
+        })?;
         Ok(())
     }
 }
@@ -115,10 +116,13 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         let mut profiles = HashMap::new();
-        profiles.insert("default".to_string(), Profile {
-            space_id: String::new(),
-            api_token: String::new(),
-        });
+        profiles.insert(
+            "default".to_string(),
+            Profile {
+                space_id: String::new(),
+                api_token: String::new(),
+            },
+        );
 
         Config {
             profiles,
@@ -136,7 +140,8 @@ pub fn load_credentials() -> Result<(String, String)> {
     }
 
     let config = Config::load()?;
-    let profile = config.get_current_profile()
+    let profile = config
+        .get_current_profile()
         .ok_or_else(|| anyhow::anyhow!("No current profile configured"))?;
 
     let space_id = if space_id.is_ok() {
@@ -216,10 +221,13 @@ mod tests {
     fn test_set_current_profile_success() {
         let mut config = Config::default();
 
-        config.add_profile("prod".to_string(), Profile {
-            space_id: "prod-space".to_string(),
-            api_token: "prod-token".to_string(),
-        });
+        config.add_profile(
+            "prod".to_string(),
+            Profile {
+                space_id: "prod-space".to_string(),
+                api_token: "prod-token".to_string(),
+            },
+        );
 
         let result = config.set_current_profile("prod".to_string());
         assert!(result.is_ok());
@@ -257,10 +265,13 @@ mod tests {
     #[test]
     fn test_config_serialization() {
         let mut config = Config::default();
-        config.add_profile("test".to_string(), Profile {
-            space_id: "test-space".to_string(),
-            api_token: "test-token".to_string(),
-        });
+        config.add_profile(
+            "test".to_string(),
+            Profile {
+                space_id: "test-space".to_string(),
+                api_token: "test-token".to_string(),
+            },
+        );
         config.set_current_profile("test".to_string()).unwrap();
 
         let serialized = toml::to_string(&config).unwrap();
@@ -313,20 +324,29 @@ mod tests {
     fn test_multiple_profiles() {
         let mut config = Config::default();
 
-        config.add_profile("dev".to_string(), Profile {
-            space_id: "dev-space".to_string(),
-            api_token: "dev-token".to_string(),
-        });
+        config.add_profile(
+            "dev".to_string(),
+            Profile {
+                space_id: "dev-space".to_string(),
+                api_token: "dev-token".to_string(),
+            },
+        );
 
-        config.add_profile("staging".to_string(), Profile {
-            space_id: "staging-space".to_string(),
-            api_token: "staging-token".to_string(),
-        });
+        config.add_profile(
+            "staging".to_string(),
+            Profile {
+                space_id: "staging-space".to_string(),
+                api_token: "staging-token".to_string(),
+            },
+        );
 
-        config.add_profile("prod".to_string(), Profile {
-            space_id: "prod-space".to_string(),
-            api_token: "prod-token".to_string(),
-        });
+        config.add_profile(
+            "prod".to_string(),
+            Profile {
+                space_id: "prod-space".to_string(),
+                api_token: "prod-token".to_string(),
+            },
+        );
 
         assert_eq!(config.profiles.len(), 4); // default + 3 new
 

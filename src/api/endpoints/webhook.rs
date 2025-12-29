@@ -24,12 +24,20 @@ impl crate::api::RepsonaClient {
         self.get("webhook").await
     }
 
-    pub async fn create_webhook(&self, request: &CreateWebhookRequest) -> Result<ApiResponse<WebhookData>> {
+    pub async fn create_webhook(
+        &self,
+        request: &CreateWebhookRequest,
+    ) -> Result<ApiResponse<WebhookData>> {
         self.post("webhook", request).await
     }
 
-    pub async fn update_webhook(&self, webhook_id: u64, request: &UpdateWebhookRequest) -> Result<ApiResponse<WebhookData>> {
-        self.patch(&format!("webhook/{}", webhook_id), request).await
+    pub async fn update_webhook(
+        &self,
+        webhook_id: u64,
+        request: &UpdateWebhookRequest,
+    ) -> Result<ApiResponse<WebhookData>> {
+        self.patch(&format!("webhook/{}", webhook_id), request)
+            .await
     }
 
     pub async fn delete_webhook(&self, webhook_id: u64) -> Result<()> {

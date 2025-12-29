@@ -65,43 +65,101 @@ pub struct UpdateTaskRequest {
 }
 
 impl crate::api::RepsonaClient {
-    pub async fn list_tasks(&self, project_id: u64, _filter: &super::me::TaskFilter) -> Result<ApiResponse<TasksData>> {
+    pub async fn list_tasks(
+        &self,
+        project_id: u64,
+        _filter: &super::me::TaskFilter,
+    ) -> Result<ApiResponse<TasksData>> {
         self.get(&format!("project/{}/task", project_id)).await
     }
 
     pub async fn get_task(&self, project_id: u64, task_id: u64) -> Result<ApiResponse<TaskData>> {
-        self.get(&format!("project/{}/task/{}", project_id, task_id)).await
+        self.get(&format!("project/{}/task/{}", project_id, task_id))
+            .await
     }
 
-    pub async fn create_task(&self, project_id: u64, request: &CreateTaskRequest) -> Result<ApiResponse<TaskData>> {
-        self.post(&format!("project/{}/task", project_id), request).await
+    pub async fn create_task(
+        &self,
+        project_id: u64,
+        request: &CreateTaskRequest,
+    ) -> Result<ApiResponse<TaskData>> {
+        self.post(&format!("project/{}/task", project_id), request)
+            .await
     }
 
-    pub async fn update_task(&self, project_id: u64, task_id: u64, request: &UpdateTaskRequest) -> Result<ApiResponse<TaskData>> {
-        self.patch(&format!("project/{}/task/{}", project_id, task_id), request).await
+    pub async fn update_task(
+        &self,
+        project_id: u64,
+        task_id: u64,
+        request: &UpdateTaskRequest,
+    ) -> Result<ApiResponse<TaskData>> {
+        self.patch(&format!("project/{}/task/{}", project_id, task_id), request)
+            .await
     }
 
-    pub async fn set_task_status(&self, project_id: u64, task_id: u64, status_id: u64) -> Result<ApiResponse<TaskData>> {
-        self.patch(&format!("project/{}/task/{}", project_id, task_id), &serde_json::json!({ "status": status_id })).await
+    pub async fn set_task_status(
+        &self,
+        project_id: u64,
+        task_id: u64,
+        status_id: u64,
+    ) -> Result<ApiResponse<TaskData>> {
+        self.patch(
+            &format!("project/{}/task/{}", project_id, task_id),
+            &serde_json::json!({ "status": status_id }),
+        )
+        .await
     }
 
-    pub async fn get_task_children(&self, project_id: u64, task_id: u64) -> Result<ApiResponse<TasksData>> {
-        self.get(&format!("project/{}/task/{}/children", project_id, task_id)).await
+    pub async fn get_task_children(
+        &self,
+        project_id: u64,
+        task_id: u64,
+    ) -> Result<ApiResponse<TasksData>> {
+        self.get(&format!("project/{}/task/{}/children", project_id, task_id))
+            .await
     }
 
-    pub async fn list_task_comments(&self, project_id: u64, task_id: u64) -> Result<ApiResponse<TaskCommentsData>> {
-        self.get(&format!("project/{}/task/{}/task_comment", project_id, task_id)).await
+    pub async fn list_task_comments(
+        &self,
+        project_id: u64,
+        task_id: u64,
+    ) -> Result<ApiResponse<TaskCommentsData>> {
+        self.get(&format!(
+            "project/{}/task/{}/task_comment",
+            project_id, task_id
+        ))
+        .await
     }
 
-    pub async fn add_task_comment(&self, project_id: u64, task_id: u64, comment: String, _reply_to: Option<u64>) -> Result<ApiResponse<TaskCommentData>> {
-        self.post(&format!("project/{}/task/{}/task_comment", project_id, task_id), &serde_json::json!({ "comment": comment })).await
+    pub async fn add_task_comment(
+        &self,
+        project_id: u64,
+        task_id: u64,
+        comment: String,
+        _reply_to: Option<u64>,
+    ) -> Result<ApiResponse<TaskCommentData>> {
+        self.post(
+            &format!("project/{}/task/{}/task_comment", project_id, task_id),
+            &serde_json::json!({ "comment": comment }),
+        )
+        .await
     }
 
-    pub async fn get_task_activity(&self, project_id: u64, task_id: u64) -> Result<ApiResponse<ActivityData>> {
-        self.get(&format!("project/{}/task/{}/activity", project_id, task_id)).await
+    pub async fn get_task_activity(
+        &self,
+        project_id: u64,
+        task_id: u64,
+    ) -> Result<ApiResponse<ActivityData>> {
+        self.get(&format!("project/{}/task/{}/activity", project_id, task_id))
+            .await
     }
 
-    pub async fn get_task_history(&self, project_id: u64, task_id: u64) -> Result<ApiResponse<HistoryData>> {
-        self.get(&format!("project/{}/task/{}/history", project_id, task_id)).await
+    pub async fn get_task_history(
+        &self,
+        project_id: u64,
+        task_id: u64,
+    ) -> Result<ApiResponse<HistoryData>> {
+        self.get(&format!("project/{}/task/{}/history", project_id, task_id))
+            .await
     }
 }

@@ -11,9 +11,11 @@ use crate::error_report::{ErrorReport, SensitiveData};
 /// Handle report subcommands.
 pub async fn handle(cmd: ReportCommands) -> Result<()> {
     match cmd {
-        ReportCommands::Generate { error, command, output } => {
-            handle_generate(error, command, output).await
-        }
+        ReportCommands::Generate {
+            error,
+            command,
+            output,
+        } => handle_generate(error, command, output).await,
         ReportCommands::Test => handle_test().await,
         ReportCommands::Info => handle_info().await,
     }
@@ -46,7 +48,9 @@ async fn handle_generate(
     };
 
     if error_text.is_empty() {
-        return Err(anyhow::anyhow!("No error message provided. Use --error or pipe from stdin."));
+        return Err(anyhow::anyhow!(
+            "No error message provided. Use --error or pipe from stdin."
+        ));
     }
 
     // Build sensitive data registry
@@ -64,7 +68,10 @@ async fn handle_generate(
 
     // Verify the report is safe
     if !report.verify_no_sensitive_data(&sensitive) {
-        eprintln!("{}", "Warning: Report may still contain sensitive data after sanitization.".yellow());
+        eprintln!(
+            "{}",
+            "Warning: Report may still contain sensitive data after sanitization.".yellow()
+        );
         eprintln!("{}", "Please review carefully before submitting.".yellow());
     }
 
@@ -79,8 +86,14 @@ async fn handle_generate(
     }
 
     println!();
-    println!("{}", "Note: This report has been sanitized to remove sensitive data.".dimmed());
-    println!("{}", "Please review before posting to GitHub issues.".dimmed());
+    println!(
+        "{}",
+        "Note: This report has been sanitized to remove sensitive data.".dimmed()
+    );
+    println!(
+        "{}",
+        "Please review before posting to GitHub issues.".dimmed()
+    );
 
     Ok(())
 }
@@ -117,7 +130,10 @@ async fn handle_test() -> Result<()> {
     // Show what was redacted
     println!("{}", "=== REDACTION SUMMARY ===".bold().cyan());
     println!();
-    println!("{}", "The following types of data are automatically redacted:".yellow());
+    println!(
+        "{}",
+        "The following types of data are automatically redacted:".yellow()
+    );
     println!("  • API tokens and credentials");
     println!("  • Space IDs (in URLs and text)");
     println!("  • UUIDs and request IDs");
@@ -127,9 +143,15 @@ async fn handle_test() -> Result<()> {
     println!();
 
     if report.verify_no_sensitive_data(&sensitive) {
-        println!("{}", "✓ Report verified: No registered sensitive data found.".green());
+        println!(
+            "{}",
+            "✓ Report verified: No registered sensitive data found.".green()
+        );
     } else {
-        println!("{}", "✗ Warning: Some sensitive data may still be present.".red());
+        println!(
+            "{}",
+            "✗ Warning: Some sensitive data may still be present.".red()
+        );
     }
 
     Ok(())

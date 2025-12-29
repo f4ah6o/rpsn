@@ -22,12 +22,21 @@ impl crate::api::RepsonaClient {
         self.get(&format!("user/{}", user_id)).await
     }
 
-    pub async fn set_user_role(&self, user_id: u64, request: &SetUserRoleRequest) -> Result<ApiResponse<UserData>> {
+    pub async fn set_user_role(
+        &self,
+        user_id: u64,
+        request: &SetUserRoleRequest,
+    ) -> Result<ApiResponse<UserData>> {
         self.patch(&format!("user/{}/role", user_id), request).await
     }
 
-    pub async fn set_user_payment(&self, user_id: u64, request: &SetPaymentRequest) -> Result<ApiResponse<UserData>> {
-        self.patch(&format!("user/{}/payment", user_id), request).await
+    pub async fn set_user_payment(
+        &self,
+        user_id: u64,
+        request: &SetPaymentRequest,
+    ) -> Result<ApiResponse<UserData>> {
+        self.patch(&format!("user/{}/payment", user_id), request)
+            .await
     }
 
     pub async fn get_user_activity(&self, user_id: u64) -> Result<ApiResponse<ActivityData>> {

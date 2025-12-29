@@ -29,9 +29,7 @@ fn sanitize_json_value(value: &Value) -> Value {
             }
             Value::Object(result)
         }
-        Value::Array(arr) => {
-            Value::Array(arr.iter().map(sanitize_json_value).collect())
-        }
+        Value::Array(arr) => Value::Array(arr.iter().map(sanitize_json_value).collect()),
         _ => value.clone(),
     }
 }
@@ -71,7 +69,13 @@ impl RepsonaClient {
             .header(header::AUTHORIZATION, format!("Bearer {}", self.api_token))
     }
 
-    fn log_trace(&self, method: Method, endpoint: &str, request_body: Option<&Value>, response: &Response) {
+    fn log_trace(
+        &self,
+        method: Method,
+        endpoint: &str,
+        request_body: Option<&Value>,
+        response: &Response,
+    ) {
         if !self.trace {
             return;
         }
@@ -79,7 +83,10 @@ impl RepsonaClient {
         eprintln!("[TRACE] {} {}", method, endpoint);
         if let Some(body) = request_body {
             let sanitized = sanitize_json_value(body);
-            eprintln!("[TRACE] Request body: {}", serde_json::to_string_pretty(&sanitized).unwrap_or_else(|_| "N/A".to_string()));
+            eprintln!(
+                "[TRACE] Request body: {}",
+                serde_json::to_string_pretty(&sanitized).unwrap_or_else(|_| "N/A".to_string())
+            );
         }
         eprintln!("[TRACE] Response status: {}", response.status());
     }
@@ -120,7 +127,10 @@ impl RepsonaClient {
             eprintln!("[DRY RUN] {} {}", method_clone, endpoint);
             if let Some(b) = req_body {
                 let sanitized = sanitize_json_value(&b);
-                eprintln!("[DRY RUN] Request body: {}", serde_json::to_string_pretty(&sanitized)?);
+                eprintln!(
+                    "[DRY RUN] Request body: {}",
+                    serde_json::to_string_pretty(&sanitized)?
+                );
             }
             return Err(anyhow::anyhow!("Dry run mode - request not executed"));
         }
@@ -134,7 +144,10 @@ impl RepsonaClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Failed to read error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Failed to read error".to_string());
             return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
         }
 
@@ -144,23 +157,36 @@ impl RepsonaClient {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::GET, endpoint, None::<&()>).await
+        self.execute_request::<T>(Method::GET, endpoint, None::<&()>)
+            .await
     }
 
-    pub async fn post<T: DeserializeOwned>(&self, endpoint: &str, body: &impl Serialize) -> Result<T> {
-        self.execute_request::<T>(Method::POST, endpoint, Some(body)).await
+    pub async fn post<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        body: &impl Serialize,
+    ) -> Result<T> {
+        self.execute_request::<T>(Method::POST, endpoint, Some(body))
+            .await
     }
 
-    pub async fn patch<T: DeserializeOwned>(&self, endpoint: &str, body: &impl Serialize) -> Result<T> {
-        self.execute_request::<T>(Method::PATCH, endpoint, Some(body)).await
+    pub async fn patch<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        body: &impl Serialize,
+    ) -> Result<T> {
+        self.execute_request::<T>(Method::PATCH, endpoint, Some(body))
+            .await
     }
 
     pub async fn patch_no_body<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::PATCH, endpoint, None::<&()>).await
+        self.execute_request::<T>(Method::PATCH, endpoint, None::<&()>)
+            .await
     }
 
     pub async fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::DELETE, endpoint, None::<&()>).await
+        self.execute_request::<T>(Method::DELETE, endpoint, None::<&()>)
+            .await
     }
 
     pub async fn post_multipart<T: DeserializeOwned>(
@@ -185,7 +211,10 @@ impl RepsonaClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Failed to read error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Failed to read error".to_string());
             return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
         }
 

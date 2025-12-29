@@ -13,7 +13,10 @@ impl crate::api::RepsonaClient {
         self.get("space/base").await
     }
 
-    pub async fn invite_to_space(&self, request: &InviteRequest) -> Result<ApiResponse<InviteData>> {
+    pub async fn invite_to_space(
+        &self,
+        request: &InviteRequest,
+    ) -> Result<ApiResponse<InviteData>> {
         self.post("space/invite", request).await
     }
 }

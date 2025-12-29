@@ -48,15 +48,24 @@ impl crate::api::RepsonaClient {
         self.get("me/tasks").await
     }
 
-    pub async fn get_me_tasks_responsible(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
+    pub async fn get_me_tasks_responsible(
+        &self,
+        _filter: &TaskFilter,
+    ) -> Result<ApiResponse<TasksData>> {
         self.get("me/task/responsible").await
     }
 
-    pub async fn get_me_tasks_ball_holding(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
+    pub async fn get_me_tasks_ball_holding(
+        &self,
+        _filter: &TaskFilter,
+    ) -> Result<ApiResponse<TasksData>> {
         self.get("me/task/ballHolding").await
     }
 
-    pub async fn get_me_tasks_following(&self, _filter: &TaskFilter) -> Result<ApiResponse<TasksData>> {
+    pub async fn get_me_tasks_following(
+        &self,
+        _filter: &TaskFilter,
+    ) -> Result<ApiResponse<TasksData>> {
         self.get("me/task/following").await
     }
 

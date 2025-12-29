@@ -1,18 +1,26 @@
-use crate::api::{RepsonaClient, endpoints::me::*};
+use crate::api::{endpoints::me::*, RepsonaClient};
 use crate::cli::MeCommands;
 use crate::output::{print, OutputFormat};
 use anyhow::Result;
 use colored::Colorize;
 
 pub async fn handle(client: &RepsonaClient, command: MeCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         MeCommands::Get => {
             let response = client.get_me().await?;
             print(&response.data.user, format)?;
         }
-        MeCommands::Update { name, full_name, what_are_you_doing } => {
+        MeCommands::Update {
+            name,
+            full_name,
+            what_are_you_doing,
+        } => {
             let updates = MeUpdateRequest {
                 name,
                 full_name,

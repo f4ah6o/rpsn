@@ -1,10 +1,14 @@
-use crate::api::{RepsonaClient, endpoints::project::*};
+use crate::api::{endpoints::project::*, RepsonaClient};
 use crate::cli::ProjectCommands;
-use crate::output::{print, OutputFormat, print_success};
+use crate::output::{print, print_success, OutputFormat};
 use anyhow::Result;
 
 pub async fn handle(client: &RepsonaClient, command: ProjectCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         ProjectCommands::List => {
@@ -15,14 +19,30 @@ pub async fn handle(client: &RepsonaClient, command: ProjectCommands, json: bool
             let response = client.get_project(project_id).await?;
             print(&response.data.project, format)?;
         }
-        ProjectCommands::Create { name, full_name, purpose } => {
-            let request = CreateProjectRequest { name, full_name, purpose };
+        ProjectCommands::Create {
+            name,
+            full_name,
+            purpose,
+        } => {
+            let request = CreateProjectRequest {
+                name,
+                full_name,
+                purpose,
+            };
             let response = client.create_project(&request).await?;
             print(&response.data.project, format)?;
             print_success(&format!("Project '{}' created", response.data.project.name));
         }
-        ProjectCommands::Update { project_id, name, purpose } => {
-            let request = UpdateProjectRequest { name, full_name: None, purpose };
+        ProjectCommands::Update {
+            project_id,
+            name,
+            purpose,
+        } => {
+            let request = UpdateProjectRequest {
+                name,
+                full_name: None,
+                purpose,
+            };
             let response = client.update_project(project_id, &request).await?;
             print(&response.data.project, format)?;
             print_success(&format!("Project '{}' updated", response.data.project.name));

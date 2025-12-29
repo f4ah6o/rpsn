@@ -1,10 +1,14 @@
-use crate::api::{RepsonaClient, endpoints::space::InviteRequest};
+use crate::api::{endpoints::space::InviteRequest, RepsonaClient};
 use crate::cli::SpaceCommands;
-use crate::output::{print, OutputFormat, print_success};
+use crate::output::{print, print_success, OutputFormat};
 use anyhow::Result;
 
 pub async fn handle(client: &RepsonaClient, command: SpaceCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         SpaceCommands::Get => {
@@ -13,7 +17,10 @@ pub async fn handle(client: &RepsonaClient, command: SpaceCommands, json: bool) 
         }
         SpaceCommands::Invite { email, role } => {
             let role = role.unwrap_or_else(|| "member".to_string());
-            let request = InviteRequest { email: email.clone(), role };
+            let request = InviteRequest {
+                email: email.clone(),
+                role,
+            };
             client.invite_to_space(&request).await?;
             print_success(&format!("Invitation sent to {}", email));
         }

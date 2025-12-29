@@ -6,8 +6,13 @@ impl crate::api::RepsonaClient {
         self.get("inbox/unread").await
     }
 
-    pub async fn update_inbox(&self, inbox_id: u64, status: &str) -> Result<ApiResponse<InboxItemData>> {
-        self.patch_no_body(&format!("inbox/{}?status={}", inbox_id, status)).await
+    pub async fn update_inbox(
+        &self,
+        inbox_id: u64,
+        status: &str,
+    ) -> Result<ApiResponse<InboxItemData>> {
+        self.patch_no_body(&format!("inbox/{}?status={}", inbox_id, status))
+            .await
     }
 
     pub async fn mark_inbox_all_read(&self) -> Result<()> {

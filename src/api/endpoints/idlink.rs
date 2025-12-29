@@ -13,7 +13,10 @@ impl crate::api::RepsonaClient {
         self.get("idlink").await
     }
 
-    pub async fn create_idlink(&self, request: &CreateIdLinkRequest) -> Result<ApiResponse<IdLinkData>> {
+    pub async fn create_idlink(
+        &self,
+        request: &CreateIdLinkRequest,
+    ) -> Result<ApiResponse<IdLinkData>> {
         self.post("idlink", request).await
     }
 

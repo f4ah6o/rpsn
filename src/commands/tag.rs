@@ -11,7 +11,11 @@ pub fn parse_tags(tags: &str) -> Vec<u64> {
 }
 
 pub async fn handle(client: &RepsonaClient, command: TagCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         TagCommands::List => {

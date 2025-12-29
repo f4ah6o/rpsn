@@ -1,10 +1,14 @@
-use crate::api::{RepsonaClient, endpoints::user::*};
+use crate::api::{endpoints::user::*, RepsonaClient};
 use crate::cli::UserCommands;
-use crate::output::{print, OutputFormat, print_success};
+use crate::output::{print, print_success, OutputFormat};
 use anyhow::Result;
 
 pub async fn handle(client: &RepsonaClient, command: UserCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         UserCommands::List => {
@@ -22,7 +26,9 @@ pub async fn handle(client: &RepsonaClient, command: UserCommands, json: bool) -
             print_success(&format!("User {} role updated", user_id));
         }
         UserCommands::PaymentSet { user_id, r#type } => {
-            let request = SetPaymentRequest { payment_type: r#type };
+            let request = SetPaymentRequest {
+                payment_type: r#type,
+            };
             let response = client.set_user_payment(user_id, &request).await?;
             print(&response.data.user, format)?;
             print_success(&format!("User {} payment type updated", user_id));

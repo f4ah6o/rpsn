@@ -1,11 +1,15 @@
-use crate::api::{RepsonaClient, endpoints::file::AttachModel};
+use crate::api::{endpoints::file::AttachModel, RepsonaClient};
 use crate::cli::FileCommands;
-use crate::output::{print, OutputFormat, print_success};
+use crate::output::{print, print_success, OutputFormat};
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -> Result<()> {
-    let format = if json { OutputFormat::Json } else { OutputFormat::Human };
+    let format = if json {
+        OutputFormat::Json
+    } else {
+        OutputFormat::Human
+    };
 
     match command {
         FileCommands::Upload { project_id, path } => {
@@ -19,7 +23,12 @@ pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -
             client.download_file(&hash, output_path.as_deref()).await?;
             print_success("File downloaded");
         }
-        FileCommands::Attach { project_id, model, id, file } => {
+        FileCommands::Attach {
+            project_id,
+            model,
+            id,
+            file,
+        } => {
             let attach_model = match model.as_str() {
                 "task" => AttachModel::Task,
                 "task_comment" => AttachModel::TaskComment,
@@ -27,10 +36,17 @@ pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -
                 "note_comment" => AttachModel::NoteComment,
                 _ => return Err(anyhow::anyhow!("Invalid model: {}", model)),
             };
-            client.attach_file(project_id, attach_model, id, file).await?;
+            client
+                .attach_file(project_id, attach_model, id, file)
+                .await?;
             print_success("File attached");
         }
-        FileCommands::Detach { project_id, model, id, file } => {
+        FileCommands::Detach {
+            project_id,
+            model,
+            id,
+            file,
+        } => {
             let attach_model = match model.as_str() {
                 "task" => AttachModel::Task,
                 "task_comment" => AttachModel::TaskComment,
@@ -38,7 +54,9 @@ pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -
                 "note_comment" => AttachModel::NoteComment,
                 _ => return Err(anyhow::anyhow!("Invalid model: {}", model)),
             };
-            client.detach_file(project_id, attach_model, id, file).await?;
+            client
+                .detach_file(project_id, attach_model, id, file)
+                .await?;
             print_success("File detached");
         }
         FileCommands::Delete { file_id } => {

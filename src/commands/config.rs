@@ -19,8 +19,16 @@ pub async fn handle(command: ConfigCommands) -> Result<()> {
 fn handle_init() -> Result<()> {
     let config = Config::default();
     config.save()?;
-    println!("{}", "Configuration initialized at ~/.config/rpsn/config.toml".green().bold());
-    println!("{}", "Use 'rpsn config set' to set your credentials".dimmed());
+    println!(
+        "{}",
+        "Configuration initialized at ~/.config/rpsn/config.toml"
+            .green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "Use 'rpsn config set' to set your credentials".dimmed()
+    );
     Ok(())
 }
 
@@ -44,11 +52,19 @@ fn handle_get() -> Result<()> {
 
         println!("{}{}:", indicator, name_display);
         println!("    Space ID: {}", profile.space_id);
-        println!("    Token: {}", if profile.api_token.is_empty() {
-            "(not set)".dimmed().to_string()
-        } else {
-            format!("{}***", &profile.api_token[..8.min(profile.api_token.len())]).dimmed().to_string()
-        });
+        println!(
+            "    Token: {}",
+            if profile.api_token.is_empty() {
+                "(not set)".dimmed().to_string()
+            } else {
+                format!(
+                    "{}***",
+                    &profile.api_token[..8.min(profile.api_token.len())]
+                )
+                .dimmed()
+                .to_string()
+            }
+        );
     }
 
     Ok(())
@@ -56,19 +72,33 @@ fn handle_get() -> Result<()> {
 
 fn handle_set(space_id: String, token: String) -> Result<()> {
     let mut config = Config::load()?;
-    let profile = Profile { space_id, api_token: token };
+    let profile = Profile {
+        space_id,
+        api_token: token,
+    };
     config.add_profile("default".to_string(), profile);
     config.save()?;
-    println!("{}", "Credentials saved to 'default' profile".green().bold());
+    println!(
+        "{}",
+        "Credentials saved to 'default' profile".green().bold()
+    );
     Ok(())
 }
 
 fn handle_set_profile(name: String, space_id: String, token: String) -> Result<()> {
     let mut config = Config::load()?;
-    let profile = Profile { space_id, api_token: token };
+    let profile = Profile {
+        space_id,
+        api_token: token,
+    };
     config.add_profile(name.clone(), profile);
     config.save()?;
-    println!("{}", format!("Credentials saved to '{}' profile", name).green().bold());
+    println!(
+        "{}",
+        format!("Credentials saved to '{}' profile", name)
+            .green()
+            .bold()
+    );
     Ok(())
 }
 
@@ -76,7 +106,10 @@ fn handle_use(name: String) -> Result<()> {
     let mut config = Config::load()?;
     config.set_current_profile(name.clone())?;
     config.save()?;
-    println!("{}", format!("Switched to profile '{}'", name).green().bold());
+    println!(
+        "{}",
+        format!("Switched to profile '{}'", name).green().bold()
+    );
     Ok(())
 }
 

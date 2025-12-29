@@ -1,0 +1,18 @@
+# Clippy configuration for rpsn project
+# See https://github.com/rust-lang/rust-clippy#configuration
+
+# Warn on all wildcard imports
+warn-on-all-wildcard-imports = true
+
+# Disallowed methods (e.g., unwrap() in production code)
+# Note: We still use unwrap() in tests and for regex compilation
+disallowed-methods = []
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Too many arguments threshold
+too-many-arguments-threshold = 7

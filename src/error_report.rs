@@ -11,21 +11,16 @@ use std::collections::HashSet;
 // Pre-compiled regex patterns for sanitization
 // Using Lazy ensures these are compiled once at first use, never panicking after successful compilation
 static URL_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"https://[a-zA-Z0-9_-]+\.repsona\.com[^\s]*")
-        .expect("URL pattern regex is valid")
+    Regex::new(r"https://[a-zA-Z0-9_-]+\.repsona\.com[^\s]*").expect("URL pattern regex is valid")
 });
-static BEARER_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"Bearer\s+\S+")
-        .expect("Bearer pattern regex is valid")
-});
+static BEARER_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"Bearer\s+\S+").expect("Bearer pattern regex is valid"));
 static UUID_PATTERN: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
         .expect("UUID pattern regex is valid")
 });
-static BASE64_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"[A-Za-z0-9+_=-]{32,}")
-        .expect("Base64 pattern regex is valid")
-});
+static BASE64_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"[A-Za-z0-9+_=-]{32,}").expect("Base64 pattern regex is valid"));
 
 /// Sensitive data registry for sanitization.
 ///
@@ -174,11 +169,7 @@ impl ErrorReport {
     /// - `error`: The error to report
     /// - `command`: The command being executed (arguments will be stripped)
     /// - `sensitive`: Registry of sensitive data to redact
-    pub fn new(
-        error: &anyhow::Error,
-        command: Option<&str>,
-        sensitive: &SensitiveData,
-    ) -> Self {
+    pub fn new(error: &anyhow::Error, command: Option<&str>, sensitive: &SensitiveData) -> Self {
         let category = ErrorCategory::from_error(error);
 
         // Extract HTTP status code if present
@@ -188,12 +179,7 @@ impl ErrorReport {
         let error_message = Self::sanitize_error_message(error, sensitive);
 
         // Extract command name only (no arguments)
-        let command = command.map(|c| {
-            c.split_whitespace()
-                .next()
-                .unwrap_or(c)
-                .to_string()
-        });
+        let command = command.map(|c| c.split_whitespace().next().unwrap_or(c).to_string());
 
         ErrorReport {
             version: env!("CARGO_PKG_VERSION").to_string(),
@@ -240,17 +226,25 @@ impl ErrorReport {
 
         // Redact URLs with potential space_id (https://xxx.repsona.com/...)
         // This replaces the entire URL to avoid path leakage
-        result = URL_PATTERN.replace_all(&result, "https://[REDACTED].repsona.com/[PATH]").to_string();
+        result = URL_PATTERN
+            .replace_all(&result, "https://[REDACTED].repsona.com/[PATH]")
+            .to_string();
 
         // Redact Bearer tokens
-        result = BEARER_PATTERN.replace_all(&result, "Bearer [REDACTED]").to_string();
+        result = BEARER_PATTERN
+            .replace_all(&result, "Bearer [REDACTED]")
+            .to_string();
 
         // Redact potential API tokens (common formats: UUID, base64-like strings)
-        result = UUID_PATTERN.replace_all(&result, "[REDACTED-UUID]").to_string();
+        result = UUID_PATTERN
+            .replace_all(&result, "[REDACTED-UUID]")
+            .to_string();
 
         // Redact base64-like tokens (32+ chars, excluding slashes to avoid matching URL paths)
         // This catches typical API tokens like JWT segments, API keys, etc.
-        result = BASE64_PATTERN.replace_all(&result, "[REDACTED-TOKEN]").to_string();
+        result = BASE64_PATTERN
+            .replace_all(&result, "[REDACTED-TOKEN]")
+            .to_string();
 
         result
     }
@@ -355,16 +349,25 @@ mod tests {
     #[test]
     fn test_error_category_from_error() {
         let network_err = anyhow::anyhow!("Failed to send request: connection refused");
-        assert_eq!(ErrorCategory::from_error(&network_err), ErrorCategory::Network);
+        assert_eq!(
+            ErrorCategory::from_error(&network_err),
+            ErrorCategory::Network
+        );
 
         let auth_err = anyhow::anyhow!("API error (401): Unauthorized");
-        assert_eq!(ErrorCategory::from_error(&auth_err), ErrorCategory::Authentication);
+        assert_eq!(
+            ErrorCategory::from_error(&auth_err),
+            ErrorCategory::Authentication
+        );
 
         let api_err = anyhow::anyhow!("API error (500): Internal server error");
         assert_eq!(ErrorCategory::from_error(&api_err), ErrorCategory::ApiError);
 
         let parse_err = anyhow::anyhow!("Failed to parse response");
-        assert_eq!(ErrorCategory::from_error(&parse_err), ErrorCategory::ParseError);
+        assert_eq!(
+            ErrorCategory::from_error(&parse_err),
+            ErrorCategory::ParseError
+        );
     }
 
     #[test]
@@ -613,7 +616,10 @@ mod tests {
         let test_cases = vec![
             // API tokens (various formats)
             ("api_token=abc123def456ghi789", "api_token"),
-            ("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", "JWT token"),
+            (
+                "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+                "JWT token",
+            ),
             // Space IDs in URLs
             ("https://mycompany.repsona.com/api/tasks", "space in URL"),
             ("Error at https://test-space.repsona.com", "space in error"),
@@ -634,8 +640,12 @@ mod tests {
             let sanitized = ErrorReport::sanitize_common_patterns(&sanitized);
 
             // Check that no registered secrets appear
-            assert!(!sd.contains_sensitive(&sanitized),
-                "Failed for {}: output still contains sensitive data: {}", desc, sanitized);
+            assert!(
+                !sd.contains_sensitive(&sanitized),
+                "Failed for {}: output still contains sensitive data: {}",
+                desc,
+                sanitized
+            );
         }
     }
 
@@ -648,7 +658,7 @@ mod tests {
         let report = ErrorReport::new(
             &error,
             Some("task create --name 'Secret Project Name' --description 'Confidential info'"),
-            &sd
+            &sd,
         );
 
         // Only command name should be present
@@ -677,15 +687,17 @@ mod tests {
         }
 
         // Even if an error somehow contains this data, it should be redacted
-        let error = anyhow::anyhow!(
-            "Failed to update task 'My Important Task' for user@example.com"
-        );
+        let error =
+            anyhow::anyhow!("Failed to update task 'My Important Task' for user@example.com");
         let report = ErrorReport::new(&error, Some("task update"), &sd);
         let md = report.to_markdown();
 
         for data in &repsona_data {
-            assert!(!md.contains(data),
-                "Repsona data '{}' found in report", data);
+            assert!(
+                !md.contains(data),
+                "Repsona data '{}' found in report",
+                data
+            );
         }
     }
 }

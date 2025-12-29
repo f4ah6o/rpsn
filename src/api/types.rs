@@ -377,8 +377,8 @@ pub struct InviteData {
 
 #[cfg(test)]
 mod tests {
-    use proptest::prelude::*;
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn test_user_deserialization() {
@@ -399,7 +399,10 @@ mod tests {
         assert_eq!(user.email, "user@example.com");
         assert_eq!(user.name, "testuser");
         assert_eq!(user.full_name, "Test User");
-        assert_eq!(user.avatar_url, Some("https://example.com/avatar.png".to_string()));
+        assert_eq!(
+            user.avatar_url,
+            Some("https://example.com/avatar.png".to_string())
+        );
         assert_eq!(user.role, "admin");
         assert_eq!(user.billing_status, "active");
         assert_eq!(user.created_at, 1640000000);
