@@ -1,8 +1,11 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
@@ -30,6 +33,10 @@ impl Config {
             return Ok(Config::default());
         }
 
+        // Check file permissions on Unix systems
+        #[cfg(unix)]
+        Self::check_permissions(&config_path)?;
+
         let content = fs::read_to_string(&config_path)?;
         let config: Config = toml::from_str(&content)?;
         Ok(config)
@@ -44,6 +51,11 @@ impl Config {
 
         let content = toml::to_string_pretty(self)?;
         fs::write(&config_path, content)?;
+
+        // Set restrictive permissions on Unix systems (owner read/write only)
+        #[cfg(unix)]
+        Self::set_restrictive_permissions(&config_path)?;
+
         Ok(())
     }
 
@@ -65,6 +77,38 @@ impl Config {
 
     pub fn get_current_profile(&self) -> Option<&Profile> {
         self.get_profile(&self.current_profile)
+    }
+
+    #[cfg(unix)]
+    fn check_permissions(path: &PathBuf) -> Result<()> {
+        let metadata = fs::metadata(path)
+            .with_context(|| format!("Failed to read config file metadata: {}", path.display()))?;
+        let mode = metadata.permissions().mode();
+        let user_mode = mode & 0o777;
+
+        // Check if file is readable/writable by others (not owner)
+        // 0o600 = owner read/write only
+        if user_mode & 0o077 != 0 {
+            return Err(anyhow::anyhow!(
+                "Config file has insecure permissions ({:o}). \
+                Please run: chmod 600 {}",
+                user_mode,
+                path.display()
+            ));
+        }
+
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    fn set_restrictive_permissions(path: &PathBuf) -> Result<()> {
+        let mut perms = fs::metadata(path)
+            .with_context(|| format!("Failed to read config file metadata: {}", path.display()))?
+            .permissions();
+        perms.set_mode(0o600);
+        fs::set_permissions(path, perms)
+            .with_context(|| format!("Failed to set config file permissions: {}", path.display()))?;
+        Ok(())
     }
 }
 
