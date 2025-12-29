@@ -3,8 +3,29 @@
 //! This module ensures that sensitive information (credentials, user data from Repsona)
 //! is NEVER included in error reports.
 
+use once_cell::sync::Lazy;
+use regex_lite::Regex;
 use serde::Serialize;
 use std::collections::HashSet;
+
+// Pre-compiled regex patterns for sanitization
+// Using Lazy ensures these are compiled once at first use, never panicking after successful compilation
+static URL_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"https://[a-zA-Z0-9_-]+\.repsona\.com[^\s]*")
+        .expect("URL pattern regex is valid")
+});
+static BEARER_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"Bearer\s+\S+")
+        .expect("Bearer pattern regex is valid")
+});
+static UUID_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
+        .expect("UUID pattern regex is valid")
+});
+static BASE64_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"[A-Za-z0-9+_=-]{32,}")
+        .expect("Base64 pattern regex is valid")
+});
 
 /// Sensitive data registry for sanitization.
 ///
@@ -219,23 +240,17 @@ impl ErrorReport {
 
         // Redact URLs with potential space_id (https://xxx.repsona.com/...)
         // This replaces the entire URL to avoid path leakage
-        let url_pattern = regex_lite::Regex::new(r"https://[a-zA-Z0-9_-]+\.repsona\.com[^\s]*").unwrap();
-        result = url_pattern.replace_all(&result, "https://[REDACTED].repsona.com/[PATH]").to_string();
+        result = URL_PATTERN.replace_all(&result, "https://[REDACTED].repsona.com/[PATH]").to_string();
 
         // Redact Bearer tokens
-        let bearer_pattern = regex_lite::Regex::new(r"Bearer\s+\S+").unwrap();
-        result = bearer_pattern.replace_all(&result, "Bearer [REDACTED]").to_string();
+        result = BEARER_PATTERN.replace_all(&result, "Bearer [REDACTED]").to_string();
 
         // Redact potential API tokens (common formats: UUID, base64-like strings)
-        let token_pattern = regex_lite::Regex::new(
-            r"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-        ).unwrap();
-        result = token_pattern.replace_all(&result, "[REDACTED-UUID]").to_string();
+        result = UUID_PATTERN.replace_all(&result, "[REDACTED-UUID]").to_string();
 
         // Redact base64-like tokens (32+ chars, excluding slashes to avoid matching URL paths)
         // This catches typical API tokens like JWT segments, API keys, etc.
-        let base64_pattern = regex_lite::Regex::new(r"[A-Za-z0-9+_=-]{32,}").unwrap();
-        result = base64_pattern.replace_all(&result, "[REDACTED-TOKEN]").to_string();
+        result = BASE64_PATTERN.replace_all(&result, "[REDACTED-TOKEN]").to_string();
 
         result
     }
