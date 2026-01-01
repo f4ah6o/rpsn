@@ -20,6 +20,7 @@ impl TaskStatus {
     }
 
     /// Create TaskStatus from an ID
+    #[allow(dead_code)]
     pub fn from_id(id: u64) -> Option<Self> {
         match id {
             0 => Some(TaskStatus::Done),
@@ -363,6 +364,7 @@ pub struct UnreadCountData {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[allow(dead_code)]
 pub struct TaskCountData {
     pub count: u64,
 }
@@ -497,8 +499,8 @@ mod tests {
         assert_eq!(project.name, "project1");
         assert_eq!(project.full_name, "My Project");
         assert_eq!(project.purpose, Some("Testing purposes".to_string()));
-        assert_eq!(project.is_closed, false);
-        assert_eq!(project.is_public, true);
+        assert!(!project.is_closed);
+        assert!(project.is_public);
     }
 
     #[test]
@@ -640,7 +642,7 @@ mod tests {
         let status: Status = serde_json::from_str(json).unwrap();
         assert_eq!(status.id, 1);
         assert_eq!(status.name, "Done");
-        assert_eq!(status.is_closed, true);
+        assert!(status.is_closed);
         assert_eq!(status.color, Some("#00ff00".to_string()));
     }
 
@@ -747,7 +749,7 @@ mod tests {
         assert_eq!(webhook.name, "Deploy webhook");
         assert_eq!(webhook.url, "https://example.com/webhook");
         assert_eq!(webhook.events.len(), 2);
-        assert_eq!(webhook.active, true);
+        assert!(webhook.active);
     }
 
     #[test]

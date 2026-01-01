@@ -69,6 +69,5 @@ mod tests {
     fn test_handle_me_commands_compile() {
         // This test ensures the handle function compiles correctly
         // Actual testing requires mocking RepsonaClient
-        assert!(true);
     }
 }

@@ -266,7 +266,7 @@ impl ErrorReport {
         md.push_str(&format!("- **Version**: {}\n", self.version));
         md.push_str(&format!("- **OS**: {}\n", self.os));
         md.push_str(&format!("- **Architecture**: {}\n", self.arch));
-        md.push_str("\n");
+        md.push('\n');
 
         md.push_str("### Error Details\n");
         md.push_str(&format!("- **Category**: {:?}\n", self.category));
@@ -276,7 +276,7 @@ impl ErrorReport {
         if let Some(ref cmd) = self.command {
             md.push_str(&format!("- **Command**: `{}`\n", cmd));
         }
-        md.push_str("\n");
+        md.push('\n');
 
         md.push_str("### Error Message\n");
         md.push_str("```\n");

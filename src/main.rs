@@ -1,3 +1,4 @@
+mod ai;
 mod api;
 mod cli;
 mod commands;
@@ -117,7 +118,6 @@ fn generate_skill_file(output: Option<String>) -> Result<()> {
         format!("Skill file generated at: {}", output_path.display())
             .green()
             .bold()
-            .to_string()
     );
 
     Ok(())

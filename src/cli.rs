@@ -395,6 +395,30 @@ pub enum TaskCommands {
         /// Task ID
         task_id: u64,
     },
+    /// Generate tasks from a goal using AI
+    #[command(alias = "ai")]
+    Generate {
+        /// Project ID to create tasks in
+        project_id: u64,
+        /// Goal or objective to achieve
+        #[arg(long)]
+        goal: String,
+        /// Number of tasks to generate (default: 10)
+        #[arg(long, default_value = "10")]
+        count: usize,
+        /// Model to use for generation
+        #[arg(long)]
+        model: Option<String>,
+        /// Interactive mode - confirm each task before creating
+        #[arg(long)]
+        interactive: bool,
+        /// Initial status for generated tasks
+        #[arg(long)]
+        status: Option<u64>,
+        /// Assignee user ID for generated tasks
+        #[arg(long)]
+        assignee: Option<u64>,
+    },
 }
 
 #[derive(Subcommand)]

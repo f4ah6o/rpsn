@@ -19,7 +19,7 @@ pub async fn handle(client: &RepsonaClient, command: FileCommands, json: bool) -
             print_success(&format!("File '{}' uploaded", path));
         }
         FileCommands::Download { hash, out } => {
-            let output_path = out.map(|p| PathBuf::from(p));
+            let output_path = out.map(PathBuf::from);
             client.download_file(&hash, output_path.as_deref()).await?;
             print_success("File downloaded");
         }

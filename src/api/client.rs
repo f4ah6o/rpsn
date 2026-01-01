@@ -123,7 +123,7 @@ impl RepsonaClient {
         }
 
         if self.dry_run {
-            let req_body = body.map(|b| serde_json::to_value(b).ok()).flatten();
+            let req_body = body.and_then(|b| serde_json::to_value(b).ok());
             eprintln!("[DRY RUN] {} {}", method_clone, endpoint);
             if let Some(b) = req_body {
                 let sanitized = sanitize_json_value(&b);
@@ -139,7 +139,7 @@ impl RepsonaClient {
 
         self.handle_rate_limits(response.headers());
 
-        let request_body = body.map(|b| serde_json::to_value(b).ok()).flatten();
+        let request_body = body.and_then(|b| serde_json::to_value(b).ok());
         self.log_trace(method_clone, endpoint, request_body.as_ref(), &response);
 
         if !response.status().is_success() {
@@ -241,8 +241,8 @@ mod tests {
 
         assert_eq!(client.base_url, "https://test-space.repsona.com/api");
         assert_eq!(client.api_token, "test-token");
-        assert_eq!(client.dry_run, false);
-        assert_eq!(client.trace, false);
+        assert!(!client.dry_run);
+        assert!(!client.trace);
     }
 
     #[tokio::test]

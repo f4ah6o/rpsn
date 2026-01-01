@@ -13,10 +13,30 @@ pub struct Profile {
     pub api_token: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiConfig {
+    pub anthropic_api_key: Option<String>,
+    pub default_model: Option<String>,
+    pub default_task_count: usize,
+}
+
+impl Default for AiConfig {
+    fn default() -> Self {
+        AiConfig {
+            anthropic_api_key: None,
+            default_model: Some("claude-3-5-sonnet-20241022".to_string()),
+            default_task_count: 10,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub profiles: HashMap<String, Profile>,
     pub current_profile: String,
+    #[serde(default)]
+    pub ai: AiConfig,
 }
 
 impl Config {
@@ -127,6 +147,7 @@ impl Default for Config {
         Config {
             profiles,
             current_profile: "default".to_string(),
+            ai: AiConfig::default(),
         }
     }
 }
@@ -136,6 +157,7 @@ pub fn load_credentials() -> Result<(String, String)> {
     let api_token = std::env::var("REPSONA_TOKEN");
 
     if space_id.is_ok() && api_token.is_ok() {
+        #[allow(clippy::unnecessary_unwrap)]
         return Ok((space_id.unwrap(), api_token.unwrap()));
     }
 
@@ -159,6 +181,22 @@ pub fn load_credentials() -> Result<(String, String)> {
     Ok((space_id, api_token))
 }
 
+/// Anthropic APIキーをロードする
+/// 環境変数 ANTHROPIC_API_KEY が優先、設定ファイルがフォールバック
+pub fn load_anthropic_api_key() -> Result<String> {
+    // 環境変数を優先
+    if let Ok(key) = std::env::var("ANTHROPIC_API_KEY") {
+        return Ok(key);
+    }
+
+    // 設定ファイルから読み込み
+    let config = Config::load()?;
+    config
+        .ai
+        .anthropic_api_key
+        .ok_or_else(|| anyhow::anyhow!("Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable or configure it in config.toml"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -166,10 +204,12 @@ mod tests {
     use std::env;
     use tempfile::TempDir;
 
+    #[allow(dead_code)]
     fn setup_test_config_dir() -> TempDir {
         TempDir::new().unwrap()
     }
 
+    #[allow(dead_code)]
     fn set_test_config_path(temp_dir: &TempDir) {
         env::set_var("HOME", temp_dir.path());
     }
