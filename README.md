@@ -249,6 +249,28 @@ api_token = "personal-api-token"
 | `REPSONA_SPACE` | Override Space ID |
 | `REPSONA_TOKEN` | Override API Token |
 
+## Development Tasks (just)
+
+Use `opz rpsn-dev -- ...` to expand test credentials and other environment variables.
+
+```bash
+just test               # Run default test suite
+just test-live-api      # Run ignored live API tests (includes write operations)
+just coverage           # Generate lcov at coverage/lcov.info
+just coverage-live-api  # Generate lcov for ignored live API tests at coverage/lcov-live.info
+```
+
+### Live API Test Notes
+
+- Live tests are marked `#[ignore]` and run only via `just test-live-api`
+- Write tests create temporary resources and always attempt cleanup (delete)
+- Project creation in live tests uses compatibility payload fallbacks for API schema differences
+- Temporary resource names are intentionally short and safe to reduce server-side validation failures
+- If project creation is blocked by free-plan limits, tests fall back to using an existing project
+- Repsona API rate limits:
+  - `read: 1000/min/space`
+  - `write: 150/min/space`
+
 ## Examples
 
 ### Create a Task with Full Details

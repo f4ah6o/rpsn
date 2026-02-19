@@ -36,6 +36,36 @@ cargo test test_task_status_done_id
 cargo test prop_
 ```
 
+Recommended (with environment expansion via `opz rpsn-dev -- ...`):
+
+```bash
+# Run default test suite
+just test
+
+# Run live API tests only (ignored tests, includes write operations)
+just test-live-api
+```
+
+Live API tests are intentionally `#[ignore]` and must be run explicitly.
+Write tests create temporary resources and always attempt cleanup.
+Project creation tests use compatibility payload fallbacks to absorb API schema differences.
+Temporary names are short and sanitized to avoid server-side validation rejects.
+When free-plan project creation limits apply, tests fall back to an existing project.
+Current Repsona API rate limits are `read: 1000/min/space` and `write: 150/min/space`.
+
+### Coverage
+
+```bash
+# Install cargo-llvm-cov if missing
+just coverage-install
+
+# Coverage for default test suite
+just coverage
+
+# Coverage for live API ignored tests
+just coverage-live-api
+```
+
 ### Formatting
 
 ```bash

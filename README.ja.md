@@ -249,6 +249,28 @@ api_token = "personal-api-token"
 | `REPSONA_SPACE` | スペース ID を上書き |
 | `REPSONA_TOKEN` | API トークンを上書き |
 
+## 開発用タスク (just)
+
+テスト用の認証情報などの環境変数は `opz rpsn-dev -- ...` で展開します。
+
+```bash
+just test               # 既定のテストを実行
+just test-live-api      # ignored の実APIテストを実行（書き込みを含む）
+just coverage           # coverage/lcov.info に lcov を出力
+just coverage-live-api  # 実APIテストの lcov を coverage/lcov-live.info に出力
+```
+
+### 実 API テストの注意
+
+- 実 API テストは `#[ignore]` のため、`just test-live-api` でのみ実行されます
+- 書き込み系テストは一時リソースを作成し、常に削除を試行します
+- 実 API テストの project 作成は、API 差分に備えて互換ペイロードを段階的に試行します
+- 一時リソース名はサーバー側バリデーション回避のため短く安全な形式を使います
+- free plan 制限で project 作成不可の場合は既存 project を使うフォールバックが動作します
+- Repsona API のレート制限:
+  - `read: 1000/min/space`
+  - `write: 150/min/space`
+
 ## 使用例
 
 ### 詳細を指定してタスクを作成
