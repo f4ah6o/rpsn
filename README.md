@@ -1,4 +1,11 @@
 # rpsn - Repsona Task Management CLI
+<!-- bdg:begin -->
+[![crates.io](https://img.shields.io/crates/v/rpsn.svg)](https://crates.io/crates/rpsn)
+[![license](https://img.shields.io/github/license/f4ah6o/rpsn.svg)](https://github.com/f4ah6o/rpsn)
+[![CI](https://github.com/f4ah6o/rpsn/actions/workflows/duplicate-issue-detection.yaml/badge.svg)](https://github.com/f4ah6o/rpsn/actions/workflows/duplicate-issue-detection.yaml)
+[![CI](https://github.com/f4ah6o/rpsn/actions/workflows/ci.yaml/badge.svg)](https://github.com/f4ah6o/rpsn/actions/workflows/ci.yaml)
+[![CI](https://github.com/f4ah6o/rpsn/actions/workflows/publish.yaml/badge.svg)](https://github.com/f4ah6o/rpsn/actions/workflows/publish.yaml)
+<!-- bdg:end -->
 
 A command-line interface for [Repsona](https://repsona.com) task management system.
 
@@ -322,3 +329,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 - [Repsona](https://repsona.com) - Task management service
 - [Repsona API Documentation](https://repsona.com/api/docs)
+
+
