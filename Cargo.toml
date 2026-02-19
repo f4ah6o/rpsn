@@ -1,6 +1,6 @@
 [package]
 name = "rpsn"
-version = "2025.12.0"
+version = "2026.2.0"
 edition = "2021"
 description = "A command-line interface for Repsona task management system."
 license = "MIT"

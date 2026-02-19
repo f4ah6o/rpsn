@@ -31,3 +31,5 @@ refs/
 
 # Property-Based Testing regression files
 proptest-regressions/
+
+coverage/
