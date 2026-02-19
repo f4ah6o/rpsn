@@ -50,6 +50,14 @@ pub async fn handle(client: &RepsonaClient, command: MeCommands, json: bool) -> 
             let response = client.get_me_tasks_following(&filter).await?;
             print(&response.data.tasks, format)?;
         }
+        MeCommands::TasksCount => {
+            let response = client.get_me_task_count().await?;
+            if json {
+                print(&response.data, format)?;
+            } else {
+                println!("Tasks: {}", response.data.count);
+            }
+        }
         MeCommands::Projects => {
             let response = client.get_me_projects().await?;
             print(&response.data.projects, format)?;

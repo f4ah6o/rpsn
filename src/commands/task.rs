@@ -102,6 +102,13 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
             print(&response.data.task, format)?;
             print_success("Task reopened");
         }
+        TaskCommands::Delete {
+            project_id,
+            task_id,
+        } => {
+            client.delete_task(project_id, task_id).await?;
+            print_success("Task deleted");
+        }
         TaskCommands::Children {
             project_id,
             task_id,
@@ -127,6 +134,24 @@ pub async fn handle(client: &RepsonaClient, command: TaskCommands, json: bool) -
                 .await?;
             print(&response.data.task_comment, format)?;
             print_success("Comment added");
+        }
+        TaskCommands::CommentUpdate {
+            project_id,
+            comment_id,
+            comment,
+        } => {
+            let response = client
+                .update_task_comment(project_id, comment_id, comment)
+                .await?;
+            print(&response.data.task_comment, format)?;
+            print_success("Comment updated");
+        }
+        TaskCommands::CommentDelete {
+            project_id,
+            comment_id,
+        } => {
+            client.delete_task_comment(project_id, comment_id).await?;
+            print_success("Comment deleted");
         }
         TaskCommands::Activity {
             project_id,

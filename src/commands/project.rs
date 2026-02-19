@@ -47,6 +47,10 @@ pub async fn handle(client: &RepsonaClient, command: ProjectCommands, json: bool
             print(&response.data.project, format)?;
             print_success(&format!("Project '{}' updated", response.data.project.name));
         }
+        ProjectCommands::Delete { project_id } => {
+            client.delete_project(project_id).await?;
+            print_success(&format!("Project {} deleted", project_id));
+        }
         ProjectCommands::MembersList { project_id } => {
             let response = client.list_project_members(project_id).await?;
             print(&response.data.users, format)?;

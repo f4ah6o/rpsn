@@ -97,6 +97,11 @@ impl crate::api::RepsonaClient {
             .await
     }
 
+    pub async fn delete_task(&self, project_id: u64, task_id: u64) -> Result<()> {
+        self.delete(&format!("project/{}/task/{}", project_id, task_id))
+            .await
+    }
+
     pub async fn set_task_status(
         &self,
         project_id: u64,
@@ -136,12 +141,37 @@ impl crate::api::RepsonaClient {
         project_id: u64,
         task_id: u64,
         comment: String,
-        _reply_to: Option<u64>,
+        reply_to: Option<u64>,
     ) -> Result<ApiResponse<TaskCommentData>> {
+        let body = match reply_to {
+            Some(reply_to_id) => serde_json::json!({ "comment": comment, "replyTo": reply_to_id }),
+            None => serde_json::json!({ "comment": comment }),
+        };
         self.post(
             &format!("project/{}/task/{}/task_comment", project_id, task_id),
+            &body,
+        )
+        .await
+    }
+
+    pub async fn update_task_comment(
+        &self,
+        project_id: u64,
+        comment_id: u64,
+        comment: String,
+    ) -> Result<ApiResponse<TaskCommentData>> {
+        self.patch(
+            &format!("project/{}/task_comment/{}", project_id, comment_id),
             &serde_json::json!({ "comment": comment }),
         )
+        .await
+    }
+
+    pub async fn delete_task_comment(&self, project_id: u64, comment_id: u64) -> Result<()> {
+        self.delete(&format!(
+            "project/{}/task_comment/{}",
+            project_id, comment_id
+        ))
         .await
     }
 

@@ -103,6 +103,7 @@ rpsn project list                                     # List all projects
 rpsn project get <project_id>                         # Get project details
 rpsn project create --name <name>                     # Create a new project
 rpsn project update <project_id> --name <name>        # Update project
+rpsn project delete <project_id>                      # Delete project
 rpsn project members-list <project_id>                # List project members
 rpsn project members-add <project_id> --user <id>     # Add member to project
 rpsn project members-remove <project_id> --user <id>  # Remove member from project
@@ -120,9 +121,12 @@ rpsn task create <project_id> --title <title>         # Create a task
 rpsn task update <project_id> <task_id> --title <t>   # Update task
 rpsn task done <project_id> <task_id>                 # Mark task as done
 rpsn task reopen <project_id> <task_id>               # Reopen task
+rpsn task delete <project_id> <task_id>               # Delete task
 rpsn task children <project_id> <task_id>             # List subtasks
 rpsn task comment-list <project_id> <task_id>         # List task comments
 rpsn task comment-add <project_id> <task_id> --comment <text>  # Add comment
+rpsn task comment-update <project_id> <comment_id> --comment <text> # Update comment
+rpsn task comment-delete <project_id> <comment_id>    # Delete comment
 rpsn task activity <project_id> <task_id>             # Get task activity
 rpsn task history <project_id> <task_id>              # Get task history
 ```

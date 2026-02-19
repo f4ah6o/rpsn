@@ -1,7 +1,7 @@
 use crate::api::types::*;
 use anyhow::Result;
 use reqwest::multipart;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub enum AttachModel {
     Task,
@@ -38,8 +38,16 @@ impl crate::api::RepsonaClient {
             .await
     }
 
-    pub async fn download_file(&self, _file_hash: &str, _output_path: Option<&Path>) -> Result<()> {
-        todo!("Download file implementation")
+    pub async fn download_file(&self, file_hash: &str, output_path: Option<&Path>) -> Result<()> {
+        let bytes = self
+            .get_bytes(&format!("file/{}/download", file_hash))
+            .await?;
+
+        let path = output_path
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from(file_hash));
+        tokio::fs::write(path, bytes).await?;
+        Ok(())
     }
 
     pub async fn attach_file(

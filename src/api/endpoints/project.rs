@@ -48,6 +48,10 @@ impl crate::api::RepsonaClient {
             .await
     }
 
+    pub async fn delete_project(&self, project_id: u64) -> Result<()> {
+        self.delete(&format!("project/{}", project_id)).await
+    }
+
     pub async fn list_project_members(&self, project_id: u64) -> Result<ApiResponse<UsersData>> {
         self.get(&format!("project/{}/users", project_id)).await
     }

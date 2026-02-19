@@ -103,6 +103,7 @@ rpsn project list                                     # 全プロジェクト一
 rpsn project get <project_id>                         # プロジェクト詳細を取得
 rpsn project create --name <name>                     # 新規プロジェクトを作成
 rpsn project update <project_id> --name <name>        # プロジェクトを更新
+rpsn project delete <project_id>                      # プロジェクトを削除
 rpsn project members-list <project_id>                # プロジェクトメンバー一覧
 rpsn project members-add <project_id> --user <id>     # メンバーを追加
 rpsn project members-remove <project_id> --user <id>  # メンバーを削除
@@ -120,9 +121,12 @@ rpsn task create <project_id> --title <title>         # タスクを作成
 rpsn task update <project_id> <task_id> --title <t>   # タスクを更新
 rpsn task done <project_id> <task_id>                 # タスクを完了にする
 rpsn task reopen <project_id> <task_id>               # タスクを再開する
+rpsn task delete <project_id> <task_id>               # タスクを削除する
 rpsn task children <project_id> <task_id>             # サブタスク一覧
 rpsn task comment-list <project_id> <task_id>         # タスクのコメント一覧
 rpsn task comment-add <project_id> <task_id> --comment <text>  # コメントを追加
+rpsn task comment-update <project_id> <comment_id> --comment <text>  # コメントを更新
+rpsn task comment-delete <project_id> <comment_id>    # コメントを削除
 rpsn task activity <project_id> <task_id>             # タスクのアクティビティを取得
 rpsn task history <project_id> <task_id>              # タスクの履歴を取得
 ```

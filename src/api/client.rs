@@ -161,6 +161,34 @@ impl RepsonaClient {
             .await
     }
 
+    pub async fn get_bytes(&self, endpoint: &str) -> Result<Vec<u8>> {
+        let builder = self.build_request(Method::GET, endpoint);
+
+        if self.dry_run {
+            eprintln!("[DRY RUN] GET {} (binary)", endpoint);
+            return Err(anyhow::anyhow!("Dry run mode - request not executed"));
+        }
+
+        let response = builder.send().await.context("Failed to send request")?;
+        self.handle_rate_limits(response.headers());
+        self.log_trace(Method::GET, endpoint, None, &response);
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Failed to read error".to_string());
+            return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
+        }
+
+        let bytes = response
+            .bytes()
+            .await
+            .context("Failed to read response bytes")?;
+        Ok(bytes.to_vec())
+    }
+
     pub async fn post<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -176,11 +204,6 @@ impl RepsonaClient {
         body: &impl Serialize,
     ) -> Result<T> {
         self.execute_request::<T>(Method::PATCH, endpoint, Some(body))
-            .await
-    }
-
-    pub async fn patch_no_body<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.execute_request::<T>(Method::PATCH, endpoint, None::<&()>)
             .await
     }
 

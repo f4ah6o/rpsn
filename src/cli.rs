@@ -196,6 +196,8 @@ pub enum MeCommands {
     TasksBallHolding,
     /// List tasks you are following for updates
     TasksFollowing,
+    /// Get the count of tasks assigned to you
+    TasksCount,
     /// List all projects you are a member of
     Projects,
     /// Get your recent activity log
@@ -233,6 +235,11 @@ pub enum ProjectCommands {
         /// New project purpose
         #[arg(long)]
         purpose: Option<String>,
+    },
+    /// Delete a project permanently
+    Delete {
+        /// Project ID to delete
+        project_id: u64,
     },
     /// List all members of a project
     MembersList {
@@ -354,6 +361,13 @@ pub enum TaskCommands {
         /// Task ID to reopen
         task_id: u64,
     },
+    /// Delete a task permanently
+    Delete {
+        /// Project ID
+        project_id: u64,
+        /// Task ID to delete
+        task_id: u64,
+    },
     /// List subtasks (child tasks) of a task
     Children {
         /// Project ID
@@ -380,6 +394,23 @@ pub enum TaskCommands {
         /// Reply to an existing comment (comment ID)
         #[arg(long)]
         reply_to: Option<u64>,
+    },
+    /// Update an existing comment on a task
+    CommentUpdate {
+        /// Project ID
+        project_id: u64,
+        /// Task comment ID to update
+        comment_id: u64,
+        /// New comment text
+        #[arg(long)]
+        comment: String,
+    },
+    /// Delete a comment from a task
+    CommentDelete {
+        /// Project ID
+        project_id: u64,
+        /// Task comment ID to delete
+        comment_id: u64,
     },
     /// Get activity log for a task
     Activity {

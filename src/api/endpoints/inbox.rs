@@ -11,8 +11,11 @@ impl crate::api::RepsonaClient {
         inbox_id: u64,
         status: &str,
     ) -> Result<ApiResponse<InboxItemData>> {
-        self.patch_no_body(&format!("inbox/{}?status={}", inbox_id, status))
-            .await
+        self.patch(
+            &format!("inbox/{}", inbox_id),
+            &serde_json::json!({ "status": status }),
+        )
+        .await
     }
 
     pub async fn mark_inbox_all_read(&self) -> Result<()> {

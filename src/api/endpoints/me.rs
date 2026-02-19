@@ -73,6 +73,10 @@ impl crate::api::RepsonaClient {
         self.get("me/project").await
     }
 
+    pub async fn get_me_task_count(&self) -> Result<ApiResponse<TaskCountData>> {
+        self.get("me/task/count").await
+    }
+
     pub async fn get_me_activity(&self) -> Result<ApiResponse<ActivityData>> {
         self.get("feed").await
     }
