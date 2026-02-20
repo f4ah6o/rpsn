@@ -2,22 +2,26 @@ use colored::Colorize;
 use comfy_table::{presets::UTF8_FULL, Attribute, Cell, Color, ContentArrangement, Table};
 use serde::Serialize;
 
+use crate::telemetry_span;
+
 pub enum OutputFormat {
     Human,
     Json,
 }
 
 pub fn print<T: Serialize>(data: &T, format: OutputFormat) -> anyhow::Result<()> {
-    match format {
-        OutputFormat::Json => {
-            println!("{}", serde_json::to_string_pretty(data)?);
+    telemetry_span::with_span_result("write_outputs", &[], || {
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(data)?);
+            }
+            OutputFormat::Human => {
+                let json = serde_json::to_value(data)?;
+                print_json_value(&json);
+            }
         }
-        OutputFormat::Human => {
-            let json = serde_json::to_value(data)?;
-            print_json_value(&json);
-        }
-    }
-    Ok(())
+        Ok(())
+    })
 }
 
 fn print_json_value(value: &serde_json::Value) {
@@ -366,7 +370,9 @@ fn print_space(obj: &serde_json::Map<String, serde_json::Value>) {
 }
 
 pub fn print_success(message: &str) {
-    println!("{}", message.green().bold());
+    telemetry_span::with_span("write_outputs", &[], || {
+        println!("{}", message.green().bold());
+    });
 }
 
 #[cfg(test)]

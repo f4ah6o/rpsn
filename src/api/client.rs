@@ -4,6 +4,8 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::telemetry_span;
+
 const TOKEN_MASK: &str = "***REDACTED***";
 
 /// Sanitizes a JSON value by redacting sensitive fields
@@ -116,6 +118,7 @@ impl RepsonaClient {
         body: Option<&impl Serialize>,
     ) -> Result<T> {
         let method_clone = method.clone();
+        let method_name = method_clone.to_string();
         let mut builder = self.build_request(method, endpoint);
 
         if let Some(b) = body {
@@ -135,7 +138,17 @@ impl RepsonaClient {
             return Err(anyhow::anyhow!("Dry run mode - request not executed"));
         }
 
-        let response = builder.send().await.context("Failed to send request")?;
+        let request_attrs = vec![
+            ("http.method", method_name.clone()),
+            ("http.endpoint", endpoint.to_string()),
+            ("payload.kind", "json".to_string()),
+            ("op.phase", "execute_operation".to_string()),
+        ];
+        let response =
+            telemetry_span::with_span_async_result("http_request", &request_attrs, || async {
+                builder.send().await.context("Failed to send request")
+            })
+            .await?;
 
         self.handle_rate_limits(response.headers());
 
@@ -144,16 +157,53 @@ impl RepsonaClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Failed to read error".to_string());
+            let read_error_attrs = vec![
+                ("http.method", method_name.clone()),
+                ("http.endpoint", endpoint.to_string()),
+                ("http.status_code", status.as_u16().to_string()),
+                ("payload.kind", "text".to_string()),
+                ("op.phase", "read_response".to_string()),
+            ];
+            let error_text = telemetry_span::with_span_async_result(
+                "read_response_body",
+                &read_error_attrs,
+                || async {
+                    Ok::<String, anyhow::Error>(
+                        response
+                            .text()
+                            .await
+                            .unwrap_or_else(|_| "Failed to read error".to_string()),
+                    )
+                },
+            )
+            .await
+            .unwrap_or_else(|_| "Failed to read error".to_string());
             return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
         }
 
-        let response_text = response.text().await.context("Failed to read response")?;
+        let read_body_attrs = vec![
+            ("http.method", method_name.clone()),
+            ("http.endpoint", endpoint.to_string()),
+            ("http.status_code", response.status().as_u16().to_string()),
+            ("payload.kind", "json".to_string()),
+            ("op.phase", "read_response".to_string()),
+        ];
+        let response_text = telemetry_span::with_span_async_result(
+            "read_response_body",
+            &read_body_attrs,
+            || async { response.text().await.context("Failed to read response") },
+        )
+        .await?;
 
-        serde_json::from_str(&response_text).context("Failed to parse response")
+        let decode_attrs = vec![
+            ("http.method", method_name),
+            ("http.endpoint", endpoint.to_string()),
+            ("payload.kind", "json".to_string()),
+            ("op.phase", "decode".to_string()),
+        ];
+        telemetry_span::with_span_result("decode_response", &decode_attrs, || {
+            serde_json::from_str(&response_text).context("Failed to parse response")
+        })
     }
 
     pub async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
@@ -163,29 +213,71 @@ impl RepsonaClient {
 
     pub async fn get_bytes(&self, endpoint: &str) -> Result<Vec<u8>> {
         let builder = self.build_request(Method::GET, endpoint);
+        let method_name = Method::GET.to_string();
 
         if self.dry_run {
             eprintln!("[DRY RUN] GET {} (binary)", endpoint);
             return Err(anyhow::anyhow!("Dry run mode - request not executed"));
         }
 
-        let response = builder.send().await.context("Failed to send request")?;
+        let request_attrs = vec![
+            ("http.method", method_name.clone()),
+            ("http.endpoint", endpoint.to_string()),
+            ("payload.kind", "binary".to_string()),
+            ("op.phase", "execute_operation".to_string()),
+        ];
+        let response =
+            telemetry_span::with_span_async_result("http_request", &request_attrs, || async {
+                builder.send().await.context("Failed to send request")
+            })
+            .await?;
         self.handle_rate_limits(response.headers());
         self.log_trace(Method::GET, endpoint, None, &response);
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Failed to read error".to_string());
+            let read_error_attrs = vec![
+                ("http.method", method_name.clone()),
+                ("http.endpoint", endpoint.to_string()),
+                ("http.status_code", status.as_u16().to_string()),
+                ("payload.kind", "text".to_string()),
+                ("op.phase", "read_response".to_string()),
+            ];
+            let error_text = telemetry_span::with_span_async_result(
+                "read_response_body",
+                &read_error_attrs,
+                || async {
+                    Ok::<String, anyhow::Error>(
+                        response
+                            .text()
+                            .await
+                            .unwrap_or_else(|_| "Failed to read error".to_string()),
+                    )
+                },
+            )
+            .await
+            .unwrap_or_else(|_| "Failed to read error".to_string());
             return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
         }
 
-        let bytes = response
-            .bytes()
-            .await
-            .context("Failed to read response bytes")?;
+        let read_body_attrs = vec![
+            ("http.method", method_name),
+            ("http.endpoint", endpoint.to_string()),
+            ("http.status_code", response.status().as_u16().to_string()),
+            ("payload.kind", "binary".to_string()),
+            ("op.phase", "read_response".to_string()),
+        ];
+        let bytes = telemetry_span::with_span_async_result(
+            "read_response_body",
+            &read_body_attrs,
+            || async {
+                response
+                    .bytes()
+                    .await
+                    .context("Failed to read response bytes")
+            },
+        )
+        .await?;
         Ok(bytes.to_vec())
     }
 
@@ -218,6 +310,7 @@ impl RepsonaClient {
         form: multipart::Form,
     ) -> Result<T> {
         let mut builder = self.build_request(Method::POST, endpoint);
+        let method_name = Method::POST.to_string();
 
         if self.dry_run {
             eprintln!("[DRY RUN] POST {} (multipart)", endpoint);
@@ -226,7 +319,17 @@ impl RepsonaClient {
 
         builder = builder.multipart(form);
 
-        let response = builder.send().await.context("Failed to send request")?;
+        let request_attrs = vec![
+            ("http.method", method_name.clone()),
+            ("http.endpoint", endpoint.to_string()),
+            ("payload.kind", "multipart".to_string()),
+            ("op.phase", "execute_operation".to_string()),
+        ];
+        let response =
+            telemetry_span::with_span_async_result("http_request", &request_attrs, || async {
+                builder.send().await.context("Failed to send request")
+            })
+            .await?;
 
         self.handle_rate_limits(response.headers());
 
@@ -234,16 +337,53 @@ impl RepsonaClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Failed to read error".to_string());
+            let read_error_attrs = vec![
+                ("http.method", method_name.clone()),
+                ("http.endpoint", endpoint.to_string()),
+                ("http.status_code", status.as_u16().to_string()),
+                ("payload.kind", "text".to_string()),
+                ("op.phase", "read_response".to_string()),
+            ];
+            let error_text = telemetry_span::with_span_async_result(
+                "read_response_body",
+                &read_error_attrs,
+                || async {
+                    Ok::<String, anyhow::Error>(
+                        response
+                            .text()
+                            .await
+                            .unwrap_or_else(|_| "Failed to read error".to_string()),
+                    )
+                },
+            )
+            .await
+            .unwrap_or_else(|_| "Failed to read error".to_string());
             return Err(anyhow::anyhow!("API error ({}): {}", status, error_text));
         }
 
-        let response_text = response.text().await.context("Failed to read response")?;
+        let read_body_attrs = vec![
+            ("http.method", method_name.clone()),
+            ("http.endpoint", endpoint.to_string()),
+            ("http.status_code", response.status().as_u16().to_string()),
+            ("payload.kind", "json".to_string()),
+            ("op.phase", "read_response".to_string()),
+        ];
+        let response_text = telemetry_span::with_span_async_result(
+            "read_response_body",
+            &read_body_attrs,
+            || async { response.text().await.context("Failed to read response") },
+        )
+        .await?;
 
-        serde_json::from_str(&response_text).context("Failed to parse response")
+        let decode_attrs = vec![
+            ("http.method", method_name),
+            ("http.endpoint", endpoint.to_string()),
+            ("payload.kind", "json".to_string()),
+            ("op.phase", "decode".to_string()),
+        ];
+        telemetry_span::with_span_result("decode_response", &decode_attrs, || {
+            serde_json::from_str(&response_text).context("Failed to parse response")
+        })
     }
 }
 

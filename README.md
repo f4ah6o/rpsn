@@ -255,6 +255,12 @@ api_token = "personal-api-token"
 |----------|-------------|
 | `REPSONA_SPACE` | Override Space ID |
 | `REPSONA_TOKEN` | Override API Token |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Enable OTLP trace export (for example `http://localhost:4317`) |
+| `OTEL_SERVICE_NAME` | Override service name used in traces (default: `rpsn`) |
+| `OTEL_TRACES_SAMPLER` | Optional sampler override (`always_on`, `always_off`, `traceidratio`, `parentbased_traceidratio`, etc.) |
+| `OTEL_TRACES_SAMPLER_ARG` | Optional sampler argument (ratio for `traceidratio` samplers) |
+
+If `OTEL_EXPORTER_OTLP_ENDPOINT` is not set, tracing stays disabled (no-op).
 
 ## Development Tasks (just)
 
@@ -265,7 +271,21 @@ just test               # Run default test suite
 just test-live-api      # Run ignored live API tests (includes write operations)
 just coverage           # Generate lcov at coverage/lcov.info
 just coverage-live-api  # Generate lcov for ignored live API tests at coverage/lcov-live.info
+just jaeger-up          # Start Jaeger all-in-one with OTLP ports
+just jaeger-down        # Stop Jaeger
+just trace-ping         # Run a sample traced command
+just trace-ui           # Open Jaeger UI (http://localhost:16686)
 ```
+
+### Local Tracing with Jaeger
+
+```bash
+just jaeger-up
+just trace-ping
+just trace-ui
+```
+
+In Jaeger UI, search for service `rpsn` (or your `OTEL_SERVICE_NAME`) and inspect the span tree.
 
 ### Live API Test Notes
 
@@ -329,5 +349,4 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 - [Repsona](https://repsona.com) - Task management service
 - [Repsona API Documentation](https://repsona.com/api/docs)
-
 

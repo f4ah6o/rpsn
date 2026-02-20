@@ -1,8 +1,16 @@
 use crate::api::{endpoints::me::*, RepsonaClient};
 use crate::cli::MeCommands;
 use crate::output::{print, OutputFormat};
+use crate::telemetry_span;
 use anyhow::Result;
 use colored::Colorize;
+
+fn phase_attrs(phase: &str) -> Vec<(&'static str, String)> {
+    vec![
+        ("command.group", "me".to_string()),
+        ("op.phase", phase.to_string()),
+    ]
+}
 
 pub async fn handle(client: &RepsonaClient, command: MeCommands, json: bool) -> Result<()> {
     let format = if json {
@@ -13,58 +21,153 @@ pub async fn handle(client: &RepsonaClient, command: MeCommands, json: bool) -> 
 
     match command {
         MeCommands::Get => {
-            let response = client.get_me().await?;
-            print(&response.data.user, format)?;
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me().await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.user, format)
+            })?;
         }
         MeCommands::Update {
             name,
             full_name,
             what_are_you_doing,
         } => {
-            let updates = MeUpdateRequest {
-                name,
-                full_name,
-                what_are_you_doing,
-            };
-            let response = client.update_me(updates).await?;
-            print(&response.data.user, format)?;
-            println!("{}", "Profile updated".green().bold());
+            let prepare_attrs = phase_attrs("prepare_request");
+            let updates =
+                telemetry_span::with_span("prepare_request", &prepare_attrs, || MeUpdateRequest {
+                    name,
+                    full_name,
+                    what_are_you_doing,
+                });
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.update_me(updates).await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.user, format)
+            })?;
+            telemetry_span::with_span("render_output", &render_attrs, || {
+                println!("{}", "Profile updated".green().bold());
+            });
         }
         MeCommands::Tasks => {
-            let filter = TaskFilter::default();
-            let response = client.get_me_tasks(&filter).await?;
-            print(&response.data.tasks, format)?;
+            let prepare_attrs = phase_attrs("prepare_request");
+            let filter =
+                telemetry_span::with_span("prepare_request", &prepare_attrs, TaskFilter::default);
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_tasks(&filter).await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.tasks, format)
+            })?;
         }
         MeCommands::TasksResponsible => {
-            let filter = TaskFilter::default();
-            let response = client.get_me_tasks_responsible(&filter).await?;
-            print(&response.data.tasks, format)?;
+            let prepare_attrs = phase_attrs("prepare_request");
+            let filter =
+                telemetry_span::with_span("prepare_request", &prepare_attrs, TaskFilter::default);
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_tasks_responsible(&filter).await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.tasks, format)
+            })?;
         }
         MeCommands::TasksBallHolding => {
-            let filter = TaskFilter::default();
-            let response = client.get_me_tasks_ball_holding(&filter).await?;
-            print(&response.data.tasks, format)?;
+            let prepare_attrs = phase_attrs("prepare_request");
+            let filter =
+                telemetry_span::with_span("prepare_request", &prepare_attrs, TaskFilter::default);
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_tasks_ball_holding(&filter).await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.tasks, format)
+            })?;
         }
         MeCommands::TasksFollowing => {
-            let filter = TaskFilter::default();
-            let response = client.get_me_tasks_following(&filter).await?;
-            print(&response.data.tasks, format)?;
+            let prepare_attrs = phase_attrs("prepare_request");
+            let filter =
+                telemetry_span::with_span("prepare_request", &prepare_attrs, TaskFilter::default);
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_tasks_following(&filter).await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.tasks, format)
+            })?;
         }
         MeCommands::TasksCount => {
-            let response = client.get_me_task_count().await?;
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_task_count().await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
             if json {
-                print(&response.data, format)?;
+                telemetry_span::with_span_result("render_output", &render_attrs, || {
+                    print(&response.data, format)
+                })?;
             } else {
-                println!("Tasks: {}", response.data.count);
+                telemetry_span::with_span("render_output", &render_attrs, || {
+                    println!("Tasks: {}", response.data.count);
+                });
             }
         }
         MeCommands::Projects => {
-            let response = client.get_me_projects().await?;
-            print(&response.data.projects, format)?;
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_projects().await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.projects, format)
+            })?;
         }
         MeCommands::Activity => {
-            let response = client.get_me_activity().await?;
-            print(&response.data.activity, format)?;
+            let exec_attrs = phase_attrs("execute_operation");
+            let response = telemetry_span::with_span_async_result(
+                "execute_operation",
+                &exec_attrs,
+                || async { client.get_me_activity().await },
+            )
+            .await?;
+            let render_attrs = phase_attrs("render_output");
+            telemetry_span::with_span_result("render_output", &render_attrs, || {
+                print(&response.data.activity, format)
+            })?;
         }
     }
 

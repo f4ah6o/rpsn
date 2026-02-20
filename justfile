@@ -29,3 +29,17 @@ release: release-check
     version=$(rg -n "^version = " Cargo.toml | head -n1 | awk -F'"' '{print $2}'); \
     git tag "v${version}"; \
     git push origin "v${version}"
+
+jaeger-up:
+    docker compose up -d jaeger
+
+jaeger-down:
+    docker compose down
+
+trace-ping:
+    OTEL_SERVICE_NAME=rpsn OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 opz rpsn-dev -- cargo run -- util ping
+
+trace-ui:
+    if command -v open >/dev/null 2>&1; then open http://localhost:16686; \
+    elif command -v xdg-open >/dev/null 2>&1; then xdg-open http://localhost:16686; \
+    else echo "Open http://localhost:16686 in your browser"; fi

@@ -248,6 +248,12 @@ api_token = "personal-api-token"
 |----------|-------------|
 | `REPSONA_SPACE` | スペース ID を上書き |
 | `REPSONA_TOKEN` | API トークンを上書き |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP トレース出力を有効化（例: `http://localhost:4317`） |
+| `OTEL_SERVICE_NAME` | トレースのサービス名を上書き（デフォルト: `rpsn`） |
+| `OTEL_TRACES_SAMPLER` | サンプラー設定（`always_on`, `always_off`, `traceidratio`, `parentbased_traceidratio` など） |
+| `OTEL_TRACES_SAMPLER_ARG` | サンプラー引数（`traceidratio` 系の比率） |
+
+`OTEL_EXPORTER_OTLP_ENDPOINT` が未設定の場合、トレースは無効（no-op）で動作します。
 
 ## 開発用タスク (just)
 
@@ -258,7 +264,21 @@ just test               # 既定のテストを実行
 just test-live-api      # ignored の実APIテストを実行（書き込みを含む）
 just coverage           # coverage/lcov.info に lcov を出力
 just coverage-live-api  # 実APIテストの lcov を coverage/lcov-live.info に出力
+just jaeger-up          # Jaeger all-in-one を起動（OTLP ポート付き）
+just jaeger-down        # Jaeger を停止
+just trace-ping         # トレース付きサンプルコマンドを実行
+just trace-ui           # Jaeger UI を開く（http://localhost:16686）
 ```
+
+### Jaeger でローカルトレース確認
+
+```bash
+just jaeger-up
+just trace-ping
+just trace-ui
+```
+
+Jaeger UI で service `rpsn`（または `OTEL_SERVICE_NAME`）を検索すると、span 階層を確認できます。
 
 ### 実 API テストの注意
 

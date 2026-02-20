@@ -1,4 +1,5 @@
 use crate::api::types::*;
+use crate::telemetry_span;
 use anyhow::Result;
 use reqwest::multipart;
 use std::path::{Path, PathBuf};
@@ -27,7 +28,18 @@ impl crate::api::RepsonaClient {
         project_id: u64,
         file_path: &Path,
     ) -> Result<ApiResponse<FilesData>> {
-        let file_bytes = tokio::fs::read(file_path).await?;
+        let span_attrs = vec![
+            ("input_path", file_path.display().to_string()),
+            ("payload.kind", "binary".to_string()),
+            ("op.phase", "read_input".to_string()),
+        ];
+        let file_bytes =
+            telemetry_span::with_span_async_result("read_input_file", &span_attrs, || async {
+                tokio::fs::read(file_path)
+                    .await
+                    .map_err(anyhow::Error::from)
+            })
+            .await?;
         let file_name = file_path
             .file_name()
             .and_then(|n| n.to_str())
@@ -46,7 +58,17 @@ impl crate::api::RepsonaClient {
         let path = output_path
             .map(Path::to_path_buf)
             .unwrap_or_else(|| PathBuf::from(file_hash));
-        tokio::fs::write(path, bytes).await?;
+        let span_attrs = vec![
+            ("input_path", path.display().to_string()),
+            ("payload.kind", "binary".to_string()),
+            ("op.phase", "write_output".to_string()),
+        ];
+        telemetry_span::with_span_async_result("write_output_file", &span_attrs, || async {
+            tokio::fs::write(path, bytes)
+                .await
+                .map_err(anyhow::Error::from)
+        })
+        .await?;
         Ok(())
     }
 
