@@ -13,7 +13,7 @@ fn phase_attrs(phase: &str) -> Vec<(&'static str, String)> {
 pub fn handle_version() {
     let attrs = phase_attrs("render_output");
     telemetry_span::with_span("render_output", &attrs, || {
-        println!("rpsn 0.1.0");
+        println!("rpsn {}", env!("CARGO_PKG_VERSION"));
     });
 }
 

@@ -220,13 +220,13 @@ rpsn completion zsh > ~/.zsh/completion/_rpsn
 rpsn completion fish > ~/.config/fish/completions/rpsn.fish
 ```
 
-### Agent Skill Generation
+### Agent Skills
 
-Generate a skill file for AI assistants:
+Print or export Agent Skills-compatible `SKILL.md` content for AI assistants:
 
 ```bash
-rpsn skill-generate                    # Generate to default location
-rpsn skill-generate --output ./SKILL.md  # Generate to custom path
+rpsn skills                           # Print SKILL.md to stdout
+rpsn skills --output ./rpsn/SKILL.md  # Write SKILL.md to a custom path
 ```
 
 ## Configuration
@@ -349,4 +349,3 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 - [Repsona](https://repsona.com) - Task management service
 - [Repsona API Documentation](https://repsona.com/api/docs)
-

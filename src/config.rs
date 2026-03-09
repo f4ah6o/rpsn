@@ -200,9 +200,13 @@ pub fn load_anthropic_api_key() -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use once_cell::sync::Lazy;
     use proptest::prelude::*;
     use std::env;
+    use std::sync::Mutex;
     use tempfile::TempDir;
+
+    static ENV_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
     #[allow(dead_code)]
     fn setup_test_config_dir() -> TempDir {
@@ -325,6 +329,7 @@ mod tests {
 
     #[test]
     fn test_load_credentials_from_env() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::set_var("REPSONA_SPACE", "env-space");
         env::set_var("REPSONA_TOKEN", "env-token");
 
@@ -341,6 +346,7 @@ mod tests {
 
     #[test]
     fn test_load_credentials_partial_env() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::set_var("REPSONA_SPACE", "env-space-only");
         env::remove_var("REPSONA_TOKEN");
 

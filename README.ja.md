@@ -213,13 +213,13 @@ rpsn completion zsh > ~/.zsh/completion/_rpsn
 rpsn completion fish > ~/.config/fish/completions/rpsn.fish
 ```
 
-### エージェントスキル生成
+### Agent Skills
 
-AI アシスタント用のスキルファイルを生成:
+AI アシスタント向けの Agent Skills 互換 `SKILL.md` を標準出力またはファイルに出力:
 
 ```bash
-rpsn skill-generate                    # デフォルトの場所に生成
-rpsn skill-generate --output ./SKILL.md  # カスタムパスに生成
+rpsn skills                           # SKILL.md を標準出力に出す
+rpsn skills --output ./rpsn/SKILL.md  # SKILL.md を任意のパスに書き出す
 ```
 
 ## 設定ファイル

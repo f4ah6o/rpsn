@@ -180,15 +180,14 @@ mod tests {
         assert_eq!(result.unwrap(), 42);
     }
 
-    #[tokio::test]
-    async fn with_span_async_result_passthrough_error_when_disabled() {
+    #[test]
+    fn with_span_async_result_passthrough_error_when_disabled() {
         let _guard = TEST_LOCK.lock().expect("lock telemetry tests");
         set_enabled(false);
 
-        let result = with_span_async_result("test.span", &[], || async {
+        let result = tokio_test::block_on(with_span_async_result("test.span", &[], || async {
             Err::<(), anyhow::Error>(anyhow::anyhow!("boom"))
-        })
-        .await;
+        }));
 
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().to_string(), "boom");

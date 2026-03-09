@@ -5,17 +5,15 @@ mod commands;
 mod config;
 mod error_report;
 mod output;
+mod skills;
 mod telemetry;
 mod telemetry_span;
 
 use anyhow::Result;
 use clap::{ArgMatches, CommandFactory, FromArgMatches};
 use clap_complete::{generate, Shell};
-use std::ffi::OsString;
-use std::fs;
-use std::path::PathBuf;
-
 use colored::Colorize;
+use std::ffi::OsString;
 
 use api::RepsonaClient;
 use cli::{Cli, Commands, Shell as ClapShell, UtilCommands};
@@ -35,95 +33,6 @@ fn generate_shell_completion(shell: ClapShell) {
         ClapShell::Powershell => generate(Shell::PowerShell, &mut cmd, "rpsn", &mut buf),
     };
     print!("{}", String::from_utf8(buf).unwrap());
-}
-
-fn generate_skill_file(output: Option<String>) -> Result<()> {
-    let cmd = Cli::command();
-
-    let mut skill_content = String::new();
-    skill_content.push_str("---\n");
-    skill_content.push_str("name: rpsn\n");
-    skill_content.push_str("description: Interact with Repsona task management via rpsn CLI\n");
-    skill_content.push_str("---\n\n");
-    skill_content.push_str("# rpsn Agent Skill\n\n");
-    skill_content.push_str(
-        "This skill provides access to rpsn CLI commands for Repsona task management.\n\n",
-    );
-    skill_content.push_str("## Categories\n\n");
-
-    let subcommands = cmd.get_subcommands();
-
-    for subcmd in subcommands {
-        let name = subcmd.get_name();
-
-        if name == "util" || name == "completion" || name == "skill-generate" {
-            continue;
-        }
-
-        let description = subcmd
-            .get_about()
-            .map(|s| s.to_string())
-            .unwrap_or_default();
-
-        skill_content.push_str(&format!("### {} - {}\n", name, description));
-        skill_content.push_str("```bash\n");
-
-        for sub in subcmd.get_subcommands() {
-            let sub_name = sub.get_name();
-            let sub_desc = sub
-                .get_about()
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "".to_string());
-            skill_content.push_str(&format!("rpsn {} {} - {}\n", name, sub_name, sub_desc));
-        }
-
-        skill_content.push_str("```\n\n");
-    }
-
-    skill_content.push_str("## Global Options\n\n");
-    skill_content.push_str("- `--space <space_id>` - Override Repsona Space ID\n");
-    skill_content.push_str("- `--token <api_key>` - Override API Token\n");
-    skill_content.push_str("- `--profile <name>` - Use specific config profile\n");
-    skill_content.push_str("- `--json` - Output as JSON\n");
-    skill_content.push_str("- `--dry-run` - Show request only, don't execute\n");
-    skill_content.push_str("- `--yes` - Skip confirmation prompts\n");
-    skill_content.push_str("- `--trace` - Show HTTP trace for debugging\n\n");
-
-    skill_content.push_str("## Configuration\n\n");
-    skill_content.push_str("```bash\n");
-    skill_content.push_str("# Initialize configuration\n");
-    skill_content.push_str("rpsn config init\n\n");
-    skill_content.push_str("# Set credentials\n");
-    skill_content.push_str("rpsn config set --space <space_id> --token <api_key>\n\n");
-    skill_content.push_str("# Verify configuration\n");
-    skill_content.push_str("rpsn config whoami\n");
-    skill_content.push_str("```\n\n");
-
-    let output_path = if let Some(path) = output {
-        PathBuf::from(path)
-    } else {
-        let mut skill_dir = dirs::config_dir().unwrap();
-        skill_dir.push("rpsn");
-        skill_dir.push(".claude");
-        skill_dir.push("skills");
-        skill_dir.push("rpsn");
-        skill_dir.push("SKILL.md");
-        skill_dir
-    };
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    fs::write(&output_path, skill_content)?;
-    println!(
-        "{}",
-        format!("Skill file generated at: {}", output_path.display())
-            .green()
-            .bold()
-    );
-
-    Ok(())
 }
 
 enum RunOutcome {
@@ -227,6 +136,16 @@ async fn run_cli() -> Result<RunOutcome> {
     telemetry_span::set_span_attr(&root_span, "command.group", &command_group);
 
     let result = match cli.command {
+        Commands::Util(UtilCommands::Version) => {
+            let attrs = vec![
+                ("command.group", command_group.clone()),
+                ("op.phase", "execute_operation".to_string()),
+            ];
+            telemetry_span::with_span("main_operation", &attrs, || {
+                util::handle_version();
+            });
+            Ok(RunOutcome::Success)
+        }
         Commands::Completion { shell } => {
             let attrs = vec![
                 ("command.group", command_group.clone()),
@@ -237,14 +156,12 @@ async fn run_cli() -> Result<RunOutcome> {
             });
             Ok(RunOutcome::Success)
         }
-        Commands::SkillGenerate { output } => {
+        Commands::Skills { output } => {
             let attrs = vec![
                 ("command.group", command_group.clone()),
                 ("op.phase", "execute_operation".to_string()),
             ];
-            telemetry_span::with_span_result("main_operation", &attrs, || {
-                generate_skill_file(output)
-            })?;
+            telemetry_span::with_span_result("main_operation", &attrs, || skills::emit(output))?;
             Ok(RunOutcome::Success)
         }
         Commands::Report(cmd) => {
@@ -277,9 +194,7 @@ async fn run_cli() -> Result<RunOutcome> {
             ];
             telemetry_span::with_span_async_result("main_operation", &attrs, || async {
                 match command {
-                    Commands::Util(UtilCommands::Version) => {
-                        util::handle_version();
-                    }
+                    Commands::Util(UtilCommands::Version) => unreachable!(),
                     Commands::Util(UtilCommands::Ping) => util::handle_ping(&client).await?,
                     Commands::Config(cmd) => config_cmd::handle(cmd).await?,
                     Commands::Me(cmd) => me::handle(&client, cmd, cli.json).await?,
@@ -294,7 +209,7 @@ async fn run_cli() -> Result<RunOutcome> {
                     Commands::Webhook(cmd) => webhook::handle(&client, cmd, cli.json).await?,
                     Commands::Idlink(cmd) => idlink::handle(&client, cmd, cli.json).await?,
                     Commands::Completion { .. } => unreachable!(),
-                    Commands::SkillGenerate { .. } => unreachable!(),
+                    Commands::Skills { .. } => unreachable!(),
                     Commands::Report(_) => unreachable!(),
                 }
 

@@ -71,7 +71,7 @@ rpsn/
 ```toml
 [package]
 name = "rpsn"
-version = "0.1.0"
+version = "2026.3.0"
 edition = "2021"
 
 [dependencies]
@@ -855,8 +855,8 @@ enum Commands {
 
 Usage:
 ```bash
-rpsn skill-generate
-rpsn skill-generate --output /custom/path/SKILL.md
+rpsn skills
+rpsn skills --output /custom/path/SKILL.md
 ```
 
 ### 4.3 Integration with Build
@@ -1100,7 +1100,7 @@ Implement smart completions for:
 
 ### Stage 6: Agent Skills (Priority: High)
 33. Implement `src/skill_gen.rs` - Skill generator
-34. Add `skill-generate` command to CLI
+34. Add `skills` command to CLI
 35. Test skill generation
 36. Generate initial `SKILL.md`
 37. Document skill usage

@@ -1564,7 +1564,7 @@ dependencies = [
 
 [[package]]
 name = "rpsn"
-version = "2026.2.0"
+version = "2026.3.0"
 dependencies = [
  "anyhow",
  "async-trait",

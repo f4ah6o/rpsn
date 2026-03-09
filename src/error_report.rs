@@ -525,11 +525,12 @@ mod tests {
             let original_host = format!("https://{}.repsona.com", space_id);
             prop_assert!(!output.contains(&original_host),
                 "Original hostname '{}' was found in output: '{}'", original_host, output);
-            // Meaningful path segments should be redacted
-            prop_assert!(!output.contains(&path),
-                "Original path '{}' was found in output: '{}'", path, output);
-            prop_assert!(output.contains("https://[REDACTED].repsona.com/[PATH]"),
-                "Expected redacted URL not found in output: '{}'", output);
+            prop_assert_eq!(
+                output,
+                "https://[REDACTED].repsona.com/[PATH]",
+                "Expected fully redacted URL output for '{}'",
+                url
+            );
         }
 
         /// Property: Bearer tokens are always redacted.

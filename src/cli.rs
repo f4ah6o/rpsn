@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 #[command(
     about = "Repsona Task Management CLI - Manage tasks, projects, and notes from the command line"
 )]
-#[command(version = "0.1.0")]
+#[command(version)]
 #[command(long_about = r#"rpsn - Repsona Task Management CLI
 
 A command-line interface for Repsona (https://repsona.com) that provides 1:1 mapping
@@ -121,12 +121,43 @@ pub enum Commands {
         shell: Shell,
     },
 
-    /// Generate agent skill file for AI assistants
-    SkillGenerate {
-        /// Output file path (default: ~/.config/rpsn/.claude/skills/rpsn/SKILL.md)
+    /// Print or export Agent Skills-compatible SKILL.md content for rpsn
+    Skills {
+        /// Output file path (prints to stdout when omitted)
         #[arg(long)]
         output: Option<String>,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Cli, Commands};
+    use clap::{CommandFactory, Parser};
+
+    #[test]
+    fn parse_skills_command() {
+        let cli = Cli::try_parse_from(["rpsn", "skills"]).expect("skills command should parse");
+        assert!(matches!(cli.command, Commands::Skills { output: None }));
+    }
+
+    #[test]
+    fn parse_skills_output_option() {
+        let cli = Cli::try_parse_from(["rpsn", "skills", "--output", "./rpsn/SKILL.md"])
+            .expect("skills command with output should parse");
+        assert!(matches!(
+            cli.command,
+            Commands::Skills {
+                output: Some(ref output)
+            } if output == "./rpsn/SKILL.md"
+        ));
+    }
+
+    #[test]
+    fn help_mentions_skills_not_skill_generate() {
+        let help = Cli::command().render_long_help().to_string();
+        assert!(help.contains("skills"));
+        assert!(!help.contains("skill-generate"));
+    }
 }
 
 #[derive(Subcommand)]
